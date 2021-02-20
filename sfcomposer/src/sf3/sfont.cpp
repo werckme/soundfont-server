@@ -20,14 +20,13 @@
 
 
 
-// #include <stdio.h>
-// #include <unistd.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include <math.h>
-// #include <vorbis/vorbisenc.h>
-// #include <vorbis/codec.h>
-// #include <vorbis/vorbisfile.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <math.h>
+ #include <vorbis/vorbisenc.h>
+ #include <vorbis/codec.h>
+ #include <vorbis/vorbisfile.h>
 
 #include "sfont.h"
 #include "time.h"

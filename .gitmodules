@@ -1,0 +1,6 @@
+[submodule "sfcomposer/ext/ogg"]
+	path = sfcomposer/ext/ogg
+	url = https://github.com/xiph/ogg
+[submodule "sfcomposer/ext/vorbis"]
+	path = sfcomposer/ext/vorbis
+	url = https://github.com/xiph/vorbis
