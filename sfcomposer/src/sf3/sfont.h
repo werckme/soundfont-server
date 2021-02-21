@@ -234,7 +234,6 @@ namespace SfTools {
 
 		int writeCompressedSample(Sample*);
 		int writeUncompressedSample(Sample* s);
-		bool writeCSample(Sample*, int);
 		bool write();
 
 	public:

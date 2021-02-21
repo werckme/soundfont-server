@@ -13,6 +13,8 @@ public:
     bool seek(qint64);
     int read(char*, int);
     int write(const char *, int);
+    std::string fileName() const;
+    void close();
 };
 
 #endif

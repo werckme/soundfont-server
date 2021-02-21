@@ -1045,7 +1045,6 @@ void SoundFont::writeSample(const Sample* s)
 	writeWord(s->sampleLink);
 	writeWord(s->sampletype);
 }
-#if 0
 
 //---------------------------------------------------------
 //   writeCompressedSample
@@ -1055,7 +1054,7 @@ int SoundFont::writeCompressedSample(Sample* s)
 {
 	QFile f(path);
 	if (!f.open(QIODevice::ReadOnly)) {
-		fprintf(stderr, "cannot open <%s>\n", qPrintable(f.fileName()));
+		throw std::runtime_error("cannot open " + f.fileName());
 		return 0;
 	}
 	f.seek(samplePos + s->start * sizeof(short));
@@ -1090,7 +1089,9 @@ int SoundFont::writeCompressedSample(Sample* s)
 	ogg_packet header_code;
 
 	// Keep a track of the attenuation used before the compression
-	vorbis_comment_add(&vc, QString("AMP=%1\0").arg(_oggAmp).toStdString().c_str());
+	//vorbis_comment_add(&vc, QString("AMP=%1\0").arg(_oggAmp).toStdString().c_str());
+	auto ampArg = std::string("AMP=") + std::to_string(_oggAmp);
+	vorbis_comment_add(&vc, ampArg.c_str());
 
 	vorbis_analysis_headerout(&vd, &vc, &header, &header_comm, &header_code);
 	ogg_stream_packetin(&os, &header);
@@ -1184,43 +1185,6 @@ int SoundFont::writeCompressedSample(Sample* s)
 }
 
 //---------------------------------------------------------
-//   writeCSample
-//---------------------------------------------------------
-
-bool SoundFont::writeCSample(Sample* s, int idx)
-{
-	QFile fi(path);
-	if (!fi.open(QIODevice::ReadOnly)) {
-		fprintf(stderr, "cannot open <%s>\n", qPrintable(fi.fileName()));
-		return false;
-	}
-	fi.seek(samplePos + s->start * sizeof(short));
-	int samples = s->end - s->start;
-	short* ibuffer = new short[samples];
-	fi.read((char*)ibuffer, samples * sizeof(short));
-	fi.close();
-
-	fprintf(f, "static const short wave%d[] = {\n      ", idx);
-	int n = 0;
-	for (int row = 0;; ++row) {
-		for (int col = 0; col < 16; ++col) {
-			if (n >= samples)
-				break;
-			if (col != 0)
-				fprintf(f, ", ");
-			fprintf(f, "%d", ibuffer[n]);
-			++n;
-		}
-		if (n >= samples)
-			break;
-		fprintf(f, ",\n      ");
-	}
-	fprintf(f, "\n      };\n");
-	delete[] ibuffer;
-	return true;
-}
-
-//---------------------------------------------------------
 //   checkInstrument
 //---------------------------------------------------------
 
@@ -1240,6 +1204,7 @@ static bool checkInstrument(QList<int> pnums, QList<Preset*> presets, int instrI
 	return false;
 }
 
+
 static bool checkInstrument(QList<Preset*> presets, int instrIdx) {
 	for (int i = 0; i < presets.size(); i++) {
 		Preset* p = presets[i];
@@ -1253,6 +1218,7 @@ static bool checkInstrument(QList<Preset*> presets, int instrIdx) {
 	}
 	return false;
 }
+
 
 //---------------------------------------------------------
 //   checkSample
@@ -1379,8 +1345,7 @@ int SoundFont::writeUncompressedSample(Sample* s)
 	// Prepare input data
 	QFile f(path);
 	if (!f.open(QIODevice::ReadOnly)) {
-		fprintf(stderr, "cannot open <%s>\n", qPrintable(f.fileName()));
-		return 0;
+		throw std::runtime_error("cannot open " + f.fileName());
 	}
 	f.seek(samplePos + s->start);
 	int oggSize = s->end - s->start;
@@ -1404,7 +1369,7 @@ int SoundFont::writeUncompressedSample(Sample* s)
 			QString comment(vf.vc->user_comments[i]);
 			if (comment.contains("AMP="))
 			{
-				QStringList split = comment.split('=');
+				auto split = comment.split('=');
 				if (split.size() == 2)
 				{
 					bool ok = false;
@@ -1433,4 +1398,3 @@ int SoundFont::writeUncompressedSample(Sample* s)
 	delete[] ibuffer;
 	return length;
 }
-#endif
