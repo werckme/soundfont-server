@@ -7,4 +7,4 @@ set (SOURCES
 )
 
 add_executable(sfcomposer ${SOURCES})
-target_link_libraries(sfcomposer ogg vorbis vorbisfile)
+target_link_libraries(sfcomposer ogg vorbis vorbisfile vorbisenc)
