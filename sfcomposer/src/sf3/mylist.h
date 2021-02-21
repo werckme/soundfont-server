@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <string.h>
 
 template<typename T>
 class MyList : public std::vector<T>
@@ -12,7 +13,7 @@ public:
     MyList();
     MyList(T*, int size);
     void append(const T&);
-    void takeLast();
+    T takeLast();
     virtual ~MyList() = default;
 };
 
@@ -23,21 +24,24 @@ MyList<T>::MyList()
 }
 
 template<typename T>
-MyList<T>::MyList(T*, int size)
+MyList<T>::MyList(T* inBff, int size)
 {
-
+    resize(size);
+    ::memcpy(this->data(), inBff, size);
 }
 
 template<typename T>
-void MyList<T>::append(const T&)
+void MyList<T>::append(const T& val)
 {
-    throw std::runtime_error("not yet impl.");
+    push_back(val);
 }
 
 template<typename T>
-void MyList<T>::takeLast()
+T MyList<T>::takeLast()
 {
-    throw std::runtime_error("not yet impl.");
+    auto result = back();
+    pop_back();
+    return result;
 }
 
 #endif

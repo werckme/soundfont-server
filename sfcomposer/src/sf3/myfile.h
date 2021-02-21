@@ -3,10 +3,14 @@
 
 #include <string>
 #include "mydef.h"
+#include <stdio.h>
 
 class MyFile {
+private:
+    FILE* pFile = nullptr;
+    std::string path;
 public:
-    enum Mode {ReadOnly};
+    enum Mode {ReadOnly, WriteOnly};
     MyFile(const std::string &);
     bool open(Mode);
     qint64 pos() const;

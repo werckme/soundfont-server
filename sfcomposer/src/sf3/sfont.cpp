@@ -20,13 +20,13 @@
 
 
 
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <math.h>
- #include <vorbis/vorbisenc.h>
- #include <vorbis/codec.h>
- #include <vorbis/vorbisfile.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <vorbis/vorbisenc.h>
+#include <vorbis/codec.h>
+#include <vorbis/vorbisfile.h>
 
 #include "sfont.h"
 #include "time.h"
@@ -35,7 +35,7 @@
 using namespace SfTools;
 
 
-// #define DEBUG
+#define XDEBUG(x)
 
 #define BE_SHORT(x) ((((x)&0xFF)<<8) | (((x)>>8)&0xFF))
 #ifdef __i486__
@@ -372,81 +372,81 @@ char* SoundFont::readString(int n)
 
 void SoundFont::readSection(const char* fourcc, int len)
 {
-	printf("readSection <%s> len %d\n", fourcc, len);
+	XDEBUG(printf("readSection <%s> len %d\n", fourcc, len);)
 
-	switch (FOURCC(fourcc[0], fourcc[1], fourcc[2], fourcc[3])) {
-	case FOURCC('i', 'f', 'i', 'l'):    // version
-		readVersion(&version);
-		break;
-	case FOURCC('I', 'N', 'A', 'M'):       // sound font name
-		name = readString(len);
-		break;
-	case FOURCC('i', 's', 'n', 'g'):       // target render engine
-		engine = readString(len);
-		break;
-	case FOURCC('I', 'P', 'R', 'D'):       // product for which the bank was intended
-		product = readString(len);
-		break;
-	case FOURCC('I', 'E', 'N', 'G'): // sound designers and engineers for the bank
-		creator = readString(len);
-		break;
-	case FOURCC('I', 'S', 'F', 'T'): // SoundFont tools used to create and alter the bank
-		tools = readString(len);
-		break;
-	case FOURCC('I', 'C', 'R', 'D'): // date of creation of the bank
-		date = readString(len);
-		break;
-	case FOURCC('I', 'C', 'M', 'T'): // comments on the bank
-		comment = readString(len);
-		break;
-	case FOURCC('I', 'C', 'O', 'P'): // copyright message
-		copyright = readString(len);
-		break;
-	case FOURCC('s', 'm', 'p', 'l'): // the digital audio samples
-		samplePos = file->pos();
-		sampleLen = len;
-		skip(len);
-		break;
-	case FOURCC('s', 'm', '2', '4'): // audio samples (24-bit part)
-		skip(len); // Just skip it
-		break;
-	case FOURCC('p', 'h', 'd', 'r'): // preset headers
-		readPhdr(len);
-		break;
-	case FOURCC('p', 'b', 'a', 'g'): // preset index list
-		readBag(len, &pZones);
-		break;
-	case FOURCC('p', 'm', 'o', 'd'): // preset modulator list
-		readMod(len, &pZones);
-		break;
-	case FOURCC('p', 'g', 'e', 'n'): // preset generator list
-		readGen(len, &pZones);
-		break;
-	case FOURCC('i', 'n', 's', 't'): // instrument names and indices
-		readInst(len);
-		break;
-	case FOURCC('i', 'b', 'a', 'g'): // instrument index list
-		readBag(len, &iZones);
-		break;
-	case FOURCC('i', 'm', 'o', 'd'): // instrument modulator list
-		readMod(len, &iZones);
-		break;
-	case FOURCC('i', 'g', 'e', 'n'): // instrument generator list
-		readGen(len, &iZones);
-		break;
-	case FOURCC('s', 'h', 'd', 'r'): // sample headers
-		readShdr(len);
-		break;
-	case FOURCC('i', 'r', 'o', 'm'):    // sample rom
-		irom = readString(len);
-		break;
-	case FOURCC('i', 'v', 'e', 'r'):    // sample rom version
-		readVersion(&iver);
-		break;
-	default:
-		skip(len);
-		throw std::runtime_error("unknown fourcc " + std::string(fourcc));
-	}
+		switch (FOURCC(fourcc[0], fourcc[1], fourcc[2], fourcc[3])) {
+		case FOURCC('i', 'f', 'i', 'l'):    // version
+			readVersion(&version);
+			break;
+		case FOURCC('I', 'N', 'A', 'M'):       // sound font name
+			name = readString(len);
+			break;
+		case FOURCC('i', 's', 'n', 'g'):       // target render engine
+			engine = readString(len);
+			break;
+		case FOURCC('I', 'P', 'R', 'D'):       // product for which the bank was intended
+			product = readString(len);
+			break;
+		case FOURCC('I', 'E', 'N', 'G'): // sound designers and engineers for the bank
+			creator = readString(len);
+			break;
+		case FOURCC('I', 'S', 'F', 'T'): // SoundFont tools used to create and alter the bank
+			tools = readString(len);
+			break;
+		case FOURCC('I', 'C', 'R', 'D'): // date of creation of the bank
+			date = readString(len);
+			break;
+		case FOURCC('I', 'C', 'M', 'T'): // comments on the bank
+			comment = readString(len);
+			break;
+		case FOURCC('I', 'C', 'O', 'P'): // copyright message
+			copyright = readString(len);
+			break;
+		case FOURCC('s', 'm', 'p', 'l'): // the digital audio samples
+			samplePos = file->pos();
+			sampleLen = len;
+			skip(len);
+			break;
+		case FOURCC('s', 'm', '2', '4'): // audio samples (24-bit part)
+			skip(len); // Just skip it
+			break;
+		case FOURCC('p', 'h', 'd', 'r'): // preset headers
+			readPhdr(len);
+			break;
+		case FOURCC('p', 'b', 'a', 'g'): // preset index list
+			readBag(len, &pZones);
+			break;
+		case FOURCC('p', 'm', 'o', 'd'): // preset modulator list
+			readMod(len, &pZones);
+			break;
+		case FOURCC('p', 'g', 'e', 'n'): // preset generator list
+			readGen(len, &pZones);
+			break;
+		case FOURCC('i', 'n', 's', 't'): // instrument names and indices
+			readInst(len);
+			break;
+		case FOURCC('i', 'b', 'a', 'g'): // instrument index list
+			readBag(len, &iZones);
+			break;
+		case FOURCC('i', 'm', 'o', 'd'): // instrument modulator list
+			readMod(len, &iZones);
+			break;
+		case FOURCC('i', 'g', 'e', 'n'): // instrument generator list
+			readGen(len, &iZones);
+			break;
+		case FOURCC('s', 'h', 'd', 'r'): // sample headers
+			readShdr(len);
+			break;
+		case FOURCC('i', 'r', 'o', 'm'):    // sample rom
+			irom = readString(len);
+			break;
+		case FOURCC('i', 'v', 'e', 'r'):    // sample rom version
+			readVersion(&iver);
+			break;
+		default:
+			skip(len);
+			throw std::runtime_error("unknown fourcc " + std::string(fourcc));
+		}
 }
 
 //---------------------------------------------------------
@@ -461,8 +461,8 @@ void SoundFont::readPhdr(int len)
 		throw std::runtime_error("phdr not a multiple of 38");
 	int n = len / 38;
 	if (n <= 1) {
-		printf("no presets\n");
-		skip(len);
+		XDEBUG(printf("no presets\n");)
+			skip(len);
 		return;
 	}
 	int index1 = 0, index2;
@@ -503,7 +503,7 @@ void SoundFont::readBag(int len, QList<Zone*>* zones)
 	int gIndex1 = readWord();
 	int mIndex1 = readWord();
 	len -= 4;
-	for(Zone * zone : *zones) {
+	for (Zone* zone : *zones) {
 		gIndex2 = readWord();
 		mIndex2 = readWord();
 		len -= 4;
@@ -530,8 +530,8 @@ void SoundFont::readBag(int len, QList<Zone*>* zones)
 
 void SoundFont::readMod(int size, QList<Zone*>* zones)
 {
-	for(Zone * zone : *zones) {
-		for (ModulatorList * m : zone->modulators) {
+	for (Zone* zone : *zones) {
+		for (ModulatorList* m : zone->modulators) {
 			size -= 10;
 			if (size < 0)
 				throw std::runtime_error("pmod size mismatch");
@@ -555,12 +555,12 @@ void SoundFont::readGen(int size, QList<Zone*>* zones)
 {
 	if (size % 4)
 		throw std::runtime_error("bad generator list size");
-	for(Zone * zone : *zones) {
+	for (Zone* zone : *zones) {
 		size -= (zone->generators.size() * 4);
 		if (size < 0)
 			break;
 
-		for(GeneratorList * gen : zone->generators) {
+		for (GeneratorList* gen : zone->generators) {
 			gen->gen = static_cast<Generator>(readWord());
 			if (gen->gen == Gen_KeyRange || gen->gen == Gen_VelRange) {
 				gen->amount.lo = readByte();
@@ -624,8 +624,6 @@ void SoundFont::readShdr(int size)
 		s->pitchadj = readChar();
 		s->sampleLink = readWord();
 		s->sampletype = readWord();
-
-		// printf("readFontHeader %d %d   %d %d\n", s->start, s->end, s->loopstart, s->loopend);
 		samples.append(s);
 	}
 	skip(46);   // trailing record
@@ -812,9 +810,17 @@ void SoundFont::writeSmpl()
 	qint64 pos = file->pos();
 	writeDword(0);
 	int currentSamplePos = 0;
-	if (_compress) {
+	if (_copySamples) {
+		for (Sample* s : samples) {
+			int len = copySample(s); // In byte
+			s->start = currentSamplePos;
+			currentSamplePos += len;
+			s->end = currentSamplePos;
+		}
+	}
+	else if (_compress) {
 		// Compress wave data
-		for(Sample * s : samples) {
+		for (Sample* s : samples) {
 			// Loop start and end are now based on the beginning of each sample
 			s->loopstart -= s->start;
 			s->loopend -= s->start;
@@ -829,7 +835,7 @@ void SoundFont::writeSmpl()
 	}
 	else {
 		// Uncompress from OGG data
-		for(Sample * s : samples) {
+		for (Sample* s : samples) {
 			// OGG flag is removed
 			s->sampletype &= ~0x10;
 			int len = writeUncompressedSample(s) / 2; // In sample data points (16 bits)
@@ -858,7 +864,7 @@ void SoundFont::writePhdr()
 	int n = presets.size();
 	writeDword((n + 1) * 38);
 	int zoneIdx = 0;
-	for(const Preset * p : presets) {
+	for (const Preset* p : presets) {
 		writePreset(zoneIdx, p);
 		zoneIdx += p->zones.size();
 	}
@@ -896,7 +902,7 @@ void SoundFont::writeBag(const char* fourcc, QList<Zone*>* zones)
 	writeDword((n + 1) * 4);
 	int gIndex = 0;
 	int pIndex = 0;
-	for(const Zone * z : *zones) {
+	for (const Zone* z : *zones) {
 		writeWord(gIndex);
 		writeWord(pIndex);
 		gIndex += z->generators.size();
@@ -914,12 +920,12 @@ void SoundFont::writeMod(const char* fourcc, const QList<Zone*>* zones)
 {
 	write(fourcc, 4);
 	int n = 0;
-	for(const Zone * z: *zones)
+	for (const Zone* z : *zones)
 		n += z->modulators.size();
 	writeDword((n + 1) * 10);
 
-	for(const Zone * zone : *zones) {
-		for(const ModulatorList * m : zone->modulators)
+	for (const Zone* zone : *zones) {
+		for (const ModulatorList* m : zone->modulators)
 			writeModulator(m);
 	}
 	ModulatorList mod;
@@ -948,12 +954,12 @@ void SoundFont::writeGen(const char* fourcc, QList<Zone*>* zones)
 {
 	write(fourcc, 4);
 	int n = 0;
-	for(const Zone * z: *zones)
+	for (const Zone* z : *zones)
 		n += z->generators.size();
 	writeDword((n + 1) * 4);
 
-	for (const Zone * zone : *zones) {
-		for(const GeneratorList * g: zone->generators)
+	for (const Zone* zone : *zones) {
+		for (const GeneratorList* g : zone->generators)
 			writeGenerator(g);
 	}
 	GeneratorList gen;
@@ -988,7 +994,7 @@ void SoundFont::writeInst()
 	int n = instruments.size();
 	writeDword((n + 1) * 22);
 	int zoneIdx = 0;
-	for(const Instrument * p: instruments) {
+	for (const Instrument* p : instruments) {
 		writeInstrument(zoneIdx, p);
 		zoneIdx += p->zones.size();
 	}
@@ -1018,7 +1024,7 @@ void SoundFont::writeShdr()
 {
 	write("shdr", 4);
 	writeDword(46 * (samples.size() + 1));
-	for(const Sample * s: samples)
+	for (const Sample* s : samples)
 		writeSample(s);
 	Sample s;
 	writeSample(&s);
@@ -1074,9 +1080,8 @@ int SoundFont::writeCompressedSample(Sample* s)
 	vorbis_info_init(&vi);
 	int ret = vorbis_encode_init_vbr(&vi, 1, s->samplerate, _oggQuality);
 	if (ret) {
-		printf("vorbis init failed\n");
 		delete[] ibuffer;
-		return false;
+		throw std::runtime_error("vorbis init failed");
 	}
 	vorbis_comment_init(&vc);
 	vorbis_analysis_init(&vd, &vi);
@@ -1091,7 +1096,7 @@ int SoundFont::writeCompressedSample(Sample* s)
 	// Keep a track of the attenuation used before the compression
 	//vorbis_comment_add(&vc, QString("AMP=%1\0").arg(_oggAmp).toStdString().c_str());
 	auto ampArg = std::string("AMP=") + std::to_string(_oggAmp);
-	vorbis_comment_add(&vc, ampArg.c_str());
+	vorbis_comment_add(&vc, "AMP=1");
 
 	vorbis_analysis_headerout(&vd, &vc, &header, &header_comm, &header_code);
 	ogg_stream_packetin(&os, &header);
@@ -1396,5 +1401,27 @@ int SoundFont::writeUncompressedSample(Sample* s)
 	}
 
 	delete[] ibuffer;
+	return length;
+}
+
+//---------------------------------------------------------
+//   copySample
+//---------------------------------------------------------
+
+int SoundFont::copySample(Sample* s)
+{
+	// Prepare input data
+	QFile f(path);
+	if (!f.open(QIODevice::ReadOnly)) {
+		throw std::runtime_error("cannot open " + f.fileName());
+	}
+	f.seek(samplePos + s->start * sizeof(short));
+	int length = s->end - s->start;
+	short* ibuffer = new short[length];
+	f.read((char*)ibuffer, length * sizeof(short));
+	f.close();
+
+	file->write((const char*)ibuffer, length * sizeof(short));
+	
 	return length;
 }

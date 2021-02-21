@@ -154,7 +154,7 @@ namespace SfTools {
 	//   SoundFont
 	//---------------------------------------------------------
 
-	class SoundFont {
+	struct SoundFont {
 		QString path;
 		sfVersionTag version;
 		char* engine;
@@ -179,12 +179,12 @@ namespace SfTools {
 		QList<Sample*> samples;
 
 		QFile* file;
-		FILE* f;
 
-		bool _compress;
-		double _oggQuality;
-		double _oggAmp;
-		qint64 _oggSerial;
+		bool _compress = false;
+		bool _copySamples = true;
+		double _oggQuality = 0;
+		double _oggAmp = 0;
+		qint64 _oggSerial = 0;
 
 		// Extra option
 		bool _smallSf;
@@ -234,9 +234,9 @@ namespace SfTools {
 
 		int writeCompressedSample(Sample*);
 		int writeUncompressedSample(Sample* s);
+		int copySample(Sample* s);
 		bool write();
 
-	public:
 		SoundFont(const QString&);
 		~SoundFont();
 		bool read();

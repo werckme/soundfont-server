@@ -11,6 +11,7 @@ public:
     typedef std::string Base; 
     MyString();
     MyString(const std::string &);
+    MyString(const char*);
     bool contains(const std::string &) const;
     std::vector<MyString> split(char) const;
     double toDouble(bool) const;

@@ -11,6 +11,11 @@ MyString::MyString(const std::string &str) : Base(str)
 
 }
 
+MyString::MyString(const char *str) : Base(str)
+{
+
+}
+
 bool MyString::contains(const std::string &) const
 {
     throw std::runtime_error("not yet impl.");
