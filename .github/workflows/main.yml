@@ -16,10 +16,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: update submodules
-      run: git submodule update --init --recursive --remote    
+      run: git submodule update --init --recursive --remote
+    - name: create build folder
+      run: mkdir build
+      working-directory: sfcomposer
     - name: configure
       run: cmake -DCMAKE_BUILD_TYPE=Release ..
-      working-directory: build
+      working-directory: sfcomposer/build
     - name: build
       run: cmake --build .
-      working-directory: build
+      working-directory: sfcomposer/build
