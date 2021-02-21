@@ -1,0 +1,24 @@
+name: Linux Build
+
+on:
+  push:
+    branches: 
+        - main
+        - feature/* 
+        - develop
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: update submodules
+      run: git submodule update --init --recursive --remote    
+    - name: configure
+      run: cmake -DCMAKE_BUILD_TYPE=Release ..
+      working-directory: build
+    - name: build
+      run: cmake --build .
+      working-directory: build
