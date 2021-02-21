@@ -6,8 +6,8 @@
 
 class MySysinfo {
 public:
-    static int ByteOrder;
-    static int BigEndian;
+    static const int ByteOrder;
+    static const int BigEndian;
 };
 
 #endif
