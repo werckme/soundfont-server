@@ -13,7 +13,7 @@ public:
     MyList(T*, int size);
     void append(const T&);
     void takeLast();
-
+    virtual ~MyList() = default;
 };
 
 template<typename T>
