@@ -116,7 +116,7 @@ void process(const std::string& sfPath, const std::string& outPath, const Preset
 	//SfTools::SoundFont copy(outPath.c_str());
 	//copy.samples = QList<SfTools::Sample*>(keptSamples.begin(), keptSamples.end());
 
-	//saveAs(sf.get(), "copy.sf2");
+	saveAs(sf.get(), "copy.sf2");
 }
 
 

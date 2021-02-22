@@ -1433,6 +1433,6 @@ int SoundFont::copySample(Sample* s)
 	f.close();
 
 	file->write((const char*)ibuffer, length * sizeof(short));
-	
+	delete[] ibuffer;
 	return length;
 }
