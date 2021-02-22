@@ -501,7 +501,6 @@ void SoundFont::readPhdr(int len)
 		index1 = index2;
 		presets.append(preset);
 	}
-	presets.takeLast();
 }
 
 //---------------------------------------------------------
@@ -615,7 +614,6 @@ void SoundFont::readInst(int size)
 		index1 = index2;
 		instruments.append(instrument);
 	}
-	instruments.takeLast();
 }
 
 //---------------------------------------------------------
