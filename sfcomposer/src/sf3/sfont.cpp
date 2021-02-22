@@ -93,6 +93,9 @@ Instrument::Instrument()
 Instrument::~Instrument()
 {
 	free(name);
+	for (auto x : this->zones) {
+		delete x;
+	}
 }
 
 //---------------------------------------------------------
@@ -129,6 +132,16 @@ SoundFont::~SoundFont()
 	free(product);
 	free(copyright);
 	free(irom);
+
+	for (auto x : presets) {
+		delete x;
+	}
+	for (auto x : instruments) {
+		delete x;
+	}
+	for (auto x : samples) {
+		delete x;
+	}
 }
 //---------------------------------------------------------
 //   read

@@ -12,6 +12,8 @@ public:
     typedef std::vector<T> Base;
     MyList();
     MyList(T*, int size);
+    template <class InputIterator>
+    MyList(InputIterator begin, InputIterator end) : Base(begin, end) {}
     void append(const T&);
     T takeLast();
     virtual ~MyList() = default;

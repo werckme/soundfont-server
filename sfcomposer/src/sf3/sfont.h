@@ -97,6 +97,14 @@ namespace SfTools {
 		QList<GeneratorList*> generators;
 		QList<ModulatorList*> modulators;
 		int instrumentIndex;
+		~Zone() {
+			for (auto x : this->generators) {
+				delete x;
+			}
+			for (auto x : this->modulators) {
+				delete x;
+			}
+		}
 	};
 
 	//---------------------------------------------------------
@@ -114,6 +122,12 @@ namespace SfTools {
 		QList<Zone*> zones;
 
 		Preset() :name(nullptr), preset(0), bank(0), presetBagNdx(0), library(0), genre(0), morphology(0) {}
+		~Preset() {
+			free(name);
+			for (auto x : this->zones) {
+				delete x;
+			}
+		}
 	};
 
 	//---------------------------------------------------------
