@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <list>
 #include <set>
-
+#include <map>
 
 struct Preset {
 	int bank = 0;
@@ -56,49 +56,69 @@ bool contains(const SfTools::Preset* what, const PresetFilter &where) {
 	}) != where.end();
 }
 
-std::list<const SfTools::Instrument*> getRelatedInstruments(const SfTools::SoundFont* source, const std::list<const SfTools::Preset*> &presets)
+typedef size_t Index;
+
+std::list<SfTools::Instrument*> getRelatedInstruments(SfTools::SoundFont* source, std::list<SfTools::Preset*> &presets)
 {
-	std::set<ushort> instrumentsIds;
-	for (const auto* preset : presets) {
-		for (const auto* zone : preset->zones) {
-			for (const auto* gen : zone->generators) {
+	std::vector<ushort> instrumentsIds;
+	for (auto* preset : presets) {
+		for (auto* zone : preset->zones) {
+			for (auto* gen : zone->generators) {
 				if (gen->gen == SfTools::Gen_Instrument) {
-					instrumentsIds.insert(gen->amount.uword);
+					auto idx = gen->amount.uword;
+					auto alreadyInserted = std::find(instrumentsIds.begin(), instrumentsIds.end(), idx);
+					if (alreadyInserted != instrumentsIds.end()) {
+						gen->amount.uword = alreadyInserted - instrumentsIds.begin();
+					} else {
+						instrumentsIds.push_back(idx);
+						gen->amount.uword = instrumentsIds.size() - 1;
+					}
 				}
 			}
 		}
 	}
-	std::list<const SfTools::Instrument*> result;
+	std::list<SfTools::Instrument*> result;
 	for (auto instrumentId : instrumentsIds) {
 		result.push_back(source->instruments.at(instrumentId));
 	}
 	return result;
 }
 
-std::list<const SfTools::Sample*> getRelatedSamples(const SfTools::SoundFont* source, const std::list<const SfTools::Instrument*> &instruments)
+/*
+	finds the related samples and sets the new index to the instrument
+*/
+std::list<SfTools::Sample*> getRelatedSamples(SfTools::SoundFont* source, std::list<SfTools::Instrument*> &instruments)
 {
-	std::set<ushort> sampleIds;
-	for (const auto* instrument : instruments) {
-		for (const auto* zone : instrument->zones) {
-			for (const auto* gen : zone->generators) {
+	std::vector<ushort> sampleIds;
+	for (auto* instrument : instruments) {
+		for (auto* zone : instrument->zones) {
+			for (auto* gen : zone->generators) {
 				if (gen->gen == SfTools::Gen_SampleId) {
-					sampleIds.insert(gen->amount.uword);
+					auto idx = gen->amount.uword;
+					auto alreadyInserted = std::find(sampleIds.begin(), sampleIds.end(), idx);
+					if (alreadyInserted != sampleIds.end()) {
+						gen->amount.uword = alreadyInserted - sampleIds.begin();
+					}
+					else {
+						sampleIds.push_back(idx);
+						gen->amount.uword = sampleIds.size() - 1;
+					}
 				}
 			}
 		}
 	}
-	std::list<const SfTools::Sample*> result;
+	std::list<SfTools::Sample*> result;
 	for (auto sampleId : sampleIds) {
 		result.push_back(source->samples.at(sampleId));
 	}
 	return result;
 }
 
-std::list<const SfTools::Preset*> filterPresets(const SfTools::SoundFont* source, const PresetFilter &filter)
+std::list<SfTools::Preset*> filterPresets(const SfTools::SoundFont* source, const PresetFilter &filter)
 {
-	std::list<const SfTools::Preset*> keptPresets;
-	for (const auto* preset : source->presets) {
-		bool match = contains(preset, filter);
+	std::list<SfTools::Preset*> keptPresets;
+	for (auto* preset : source->presets) {
+		bool match = filter.empty() ? true : contains(preset, filter);
 		if (!match) {
 			continue;
 		}
@@ -107,16 +127,67 @@ std::list<const SfTools::Preset*> filterPresets(const SfTools::SoundFont* source
 	return keptPresets;
 }
 
+template<class T>
+QList<T*> clone(std::list<T*> list)
+{
+	QList<T*> result;
+	for (auto* x : list) {
+		auto copy = x->clone();
+		result.push_back(copy);
+	}
+	return result;
+}
+
+void fillEmptyFields(const SfTools::SoundFont *src, SfTools::SoundFont *dst) 
+{
+	dst->version = src->version;
+	dst->engine = strdup(src->engine);
+	dst->name = strdup(src->name);
+	dst->date = strdup(src->date);
+	dst->comment = strdup(src->comment);
+	dst->tools = strdup(src->tools);
+	dst->creator = strdup(src->creator);
+	dst->product = strdup(src->product);
+	dst->copyright = strdup(src->copyright);
+	dst->irom = strdup(src->irom);
+	dst->iver = src->iver;
+	dst->samplePos = 0;
+	dst->sampleLen = 0;
+	dst->_compress = src->_compress;
+	dst->_copySamples = src->_copySamples;
+	dst->_oggQuality = src->_oggQuality;
+	dst->_oggAmp = src->_oggAmp;
+	dst->_oggSerial = src->_oggSerial;
+	dst->_smallSf = src->_smallSf;
+	for (const auto* preset : dst->presets) {
+		for (auto* zone : preset->zones) {
+			dst->pZones.push_back(zone);
+		}
+	}
+	for (const auto* instrument : dst->instruments) {
+		for (auto* zone : instrument->zones) {
+			dst->iZones.push_back(zone);
+		}
+	}
+}
+
+/*
+	can only performed one time, after that the relation preset->instrument->sample is broken, since to keep things easy,
+	the mapping preset->instrument, instrument->sample will be updated during getRelatedInstruments and getRelatedSamples
+	and therefore the new indices will be written to the origin object
+*/
 void process(const std::string& sfPath, const std::string& outPath, const PresetFilter &keep)
 {
 	auto sf = load(sfPath);
-	//auto keptPresets = filterPresets(sf.get(), keep);
-	//auto keptInstruments = getRelatedInstruments(sf.get(), keptPresets);
-	//auto keptSamples = getRelatedSamples(sf.get(), keptInstruments);
-	//SfTools::SoundFont copy(outPath.c_str());
-	//copy.samples = QList<SfTools::Sample*>(keptSamples.begin(), keptSamples.end());
-
-	saveAs(sf.get(), "copy.sf2");
+	auto keptPresets = filterPresets(sf.get(), keep);
+	auto keptInstruments = getRelatedInstruments(sf.get(), keptPresets);
+	auto keptSamples = getRelatedSamples(sf.get(), keptInstruments);
+	SfTools::SoundFont copy(sfPath.c_str());
+	copy.samples = clone(keptSamples);
+	copy.presets = clone(keptPresets);
+	copy.instruments = clone(keptInstruments);
+	fillEmptyFields(sf.get(), &copy);
+	saveAs(&copy, "copy.sf2");
 }
 
 
@@ -131,7 +202,7 @@ int main(int argc, const char** argv)
 				"usage: sfcomposer <path to sf>"
 			);
 		}
-		process(argv[1], "copy.sf2", { {0, 16} });
+		process(argv[1], "copy.sf2", { {0, 16 } });
 	} catch (const std::exception& ex) {
 		std::cout << ex.what() << std::endl;
 		return -1;

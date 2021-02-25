@@ -105,6 +105,23 @@ namespace SfTools {
 				delete x;
 			}
 		}
+		Zone* clone() const {
+			auto res = new Zone();
+			*res = *this;
+			res->generators = QList<GeneratorList*>();
+			res->modulators = QList<ModulatorList*>();
+			for (auto* gen : generators) {
+				auto* copy = new GeneratorList();
+				*copy = *gen;
+				res->generators.push_back(copy);
+			}
+			for (auto* mod : modulators) {
+				auto* copy = new ModulatorList();
+				*copy = *mod;
+				res->modulators.push_back(copy);
+			}
+			return res;
+		}
 	};
 
 	//---------------------------------------------------------
@@ -128,6 +145,19 @@ namespace SfTools {
 				delete x;
 			}
 		}
+		Preset* clone() const {
+			auto* res = new Preset();
+			*res = *this;
+			res->zones = QList<Zone*>();
+			if (name) {
+				res->name = strdup(name);
+			}
+			for (auto* zone : zones) {
+				auto* copy = zone->clone();
+				res->zones.push_back(copy);
+			}
+			return res;
+		}
 	};
 
 	//---------------------------------------------------------
@@ -141,6 +171,20 @@ namespace SfTools {
 
 		Instrument();
 		~Instrument();
+
+		Instrument* clone() const {
+			auto* res = new Instrument();
+			*res = *this;
+			res->zones = QList<Zone*>();
+			if (name) {
+				res->name = strdup(name);
+			}
+			for (auto* zone : zones) {
+				auto* copy = zone->clone();
+				res->zones.push_back(copy);
+			}
+			return res;
+		}
 	};
 
 	//---------------------------------------------------------
@@ -162,6 +206,16 @@ namespace SfTools {
 
 		Sample();
 		~Sample();
+
+		Sample* clone() const {
+			auto* res = new Sample();
+			*res = *this;
+			if (name) {
+				res->name = strdup(name);
+			}
+			return res;
+		}
+
 	};
 
 	//---------------------------------------------------------
@@ -202,7 +256,6 @@ namespace SfTools {
 
 		// Extra option
 		bool _smallSf;
-
 		unsigned readDword();
 		int readWord();
 		int readShort();
@@ -251,7 +304,7 @@ namespace SfTools {
 		int copySample(Sample* s);
 		bool write();
 
-		SoundFont(const QString&);
+		SoundFont(const QString& = "");
 		~SoundFont();
 		bool read();
 		bool compress(QFile* f, double oggQuality, double oggAmp, qint64 oggSerial = rand());
