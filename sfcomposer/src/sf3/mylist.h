@@ -28,21 +28,21 @@ MyList<T>::MyList()
 template<typename T>
 MyList<T>::MyList(T* inBff, int size)
 {
-    resize(size);
+    Base::resize(size);
     ::memcpy(this->data(), inBff, size);
 }
 
 template<typename T>
 void MyList<T>::append(const T& val)
 {
-    push_back(val);
+    Base::push_back(val);
 }
 
 template<typename T>
 T MyList<T>::takeLast()
 {
-    T result = back();
-    pop_back();
+    T result = Base::back();
+    Base::pop_back();
     return result;
 }
 
