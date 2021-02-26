@@ -153,11 +153,6 @@ void fillEmptyFields(const SfTools::SoundFont *src, SfTools::SoundFont *dst)
 	dst->iver = src->iver;
 	dst->samplePos = 0;
 	dst->sampleLen = 0;
-	dst->_compress = src->_compress;
-	dst->_copySamples = src->_copySamples;
-	dst->_oggQuality = src->_oggQuality;
-	dst->_oggAmp = src->_oggAmp;
-	dst->_oggSerial = src->_oggSerial;
 	dst->_smallSf = src->_smallSf;
 	for (const auto* preset : dst->presets) {
 		for (auto* zone : preset->zones) {

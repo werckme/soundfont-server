@@ -41,7 +41,7 @@ void MyList<T>::append(const T& val)
 template<typename T>
 T MyList<T>::takeLast()
 {
-    auto result = back();
+    T result = back();
     pop_back();
     return result;
 }

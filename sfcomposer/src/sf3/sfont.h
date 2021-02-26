@@ -248,12 +248,6 @@ namespace SfTools {
 
 		QFile* file;
 
-		bool _compress = false;
-		bool _copySamples = true;
-		double _oggQuality = 0;
-		double _oggAmp = 0;
-		qint64 _oggSerial = 0;
-
 		// Extra option
 		bool _smallSf;
 		unsigned readDword();
@@ -299,16 +293,12 @@ namespace SfTools {
 		void writeInst();
 		void writeShdr();
 
-		int writeCompressedSample(Sample*);
-		int writeUncompressedSample(Sample* s);
 		int copySample(Sample* s);
 		bool write();
 
 		SoundFont(const QString& = "");
 		~SoundFont();
 		bool read();
-		bool compress(QFile* f, double oggQuality, double oggAmp, qint64 oggSerial = rand());
-		bool uncompress(QFile* f);
 	};
 }
 #endif
