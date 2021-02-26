@@ -498,6 +498,8 @@ void SoundFont::readPhdr(int len)
 		index1 = index2;
 		presets.append(preset);
 	}
+	auto *last = presets.takeLast();
+	delete last;
 }
 
 //---------------------------------------------------------
@@ -611,6 +613,8 @@ void SoundFont::readInst(int size)
 		index1 = index2;
 		instruments.append(instrument);
 	}
+	auto *last = instruments.takeLast();
+	delete last;
 }
 
 //---------------------------------------------------------
@@ -623,12 +627,16 @@ void SoundFont::readShdr(int size)
 	for (int i = 0; i < n - 1; ++i) {
 		Sample* s = new Sample;
 		s->name = readString(20);
+		if (std::string(s->name) == "Rhodes C2(L)") {
+			int halt = 0;
+		}
 		s->start = readDword();
 		s->end = readDword();
-		s->loopstart = readDword();
-		s->loopend = readDword();
+		s->loopstart = readDword() - s->start;
+		s->loopend = readDword() - s->start;
 		s->samplerate = readDword();
 		s->origpitch = readByte();
+
 		s->pitchadj = readChar();
 		s->sampleLink = readWord();
 		s->sampletype = readWord();
@@ -801,6 +809,8 @@ void SoundFont::writeSmpl()
 		s->start = currentSamplePos;
 		currentSamplePos += len;
 		s->end = currentSamplePos;
+		s->loopstart = s->start + s->loopstart;
+		s->loopend = s->start + s->loopend;
 	}
 
 	qint64 npos = file->pos();

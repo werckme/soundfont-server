@@ -151,8 +151,8 @@ void fillEmptyFields(const SfTools::SoundFont *src, SfTools::SoundFont *dst)
 	dst->copyright = strdup(src->copyright);
 	dst->irom = strdup(src->irom);
 	dst->iver = src->iver;
-	dst->samplePos = 0;
-	dst->sampleLen = 0;
+	dst->samplePos = src->samplePos;
+	dst->sampleLen = src->sampleLen;
 	dst->_smallSf = src->_smallSf;
 	for (const auto* preset : dst->presets) {
 		for (auto* zone : preset->zones) {
@@ -197,7 +197,7 @@ int main(int argc, const char** argv)
 				"usage: sfcomposer <path to sf>"
 			);
 		}
-		process(argv[1], "copy.sf2", { {0, 16 } });
+		process(argv[1], "copy.sf2", {  });
 	} catch (const std::exception& ex) {
 		std::cout << ex.what() << std::endl;
 		return -1;
