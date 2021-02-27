@@ -24,6 +24,8 @@
 #include "mydef.h"
 #include "myclasses.h"
 #include <com.h>
+#include <functional>
+
 namespace SfTools {
 
 	//---------------------------------------------------------
@@ -260,6 +262,8 @@ namespace SfTools {
 		void writeShdr();
 
 		int copySample(Sample* s);
+		void readSample(Sample* s, short* outBuffer, int length);
+		std::function <void(Sample*, short*, int)> readSampleFunction;
 		bool write();
 
 		SoundFont(const QString& = "");

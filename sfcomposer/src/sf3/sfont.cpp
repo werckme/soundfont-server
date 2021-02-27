@@ -116,6 +116,8 @@ SoundFont::SoundFont(const QString& s)
 	iver.major = 0;
 	iver.minor = 0;
 	_smallSf = false;
+	using namespace std::placeholders;
+	readSampleFunction = std::bind(&SoundFont::readSample, this, _1, _2, _3);
 }
 
 SoundFont::~SoundFont()
@@ -1108,6 +1110,17 @@ static bool checkSample(QList<Preset*> presets, QList<Instrument*> instruments,
 	return false;
 }
 
+void SoundFont::readSample(Sample* s, short* outBuffer, int length) 
+{
+	QFile f(path);
+	if (!f.open(QIODevice::ReadOnly)) {
+		throw std::runtime_error("cannot open " + f.fileName());
+	}
+	f.seek(samplePos + s->start * sizeof(short));
+	f.read((char*)outBuffer, length * sizeof(short));
+	f.close();
+}
+
 //---------------------------------------------------------
 //   copySample
 //---------------------------------------------------------
@@ -1115,16 +1128,12 @@ static bool checkSample(QList<Preset*> presets, QList<Instrument*> instruments,
 int SoundFont::copySample(Sample* s)
 {
 	// Prepare input data
-	QFile f(path);
-	if (!f.open(QIODevice::ReadOnly)) {
-		throw std::runtime_error("cannot open " + f.fileName());
+	if (s->end <= s->start) {
+		throw std::runtime_error("invalid sample start and end values");
 	}
-	f.seek(samplePos + s->start * sizeof(short));
 	int length = s->end - s->start;
 	short* ibuffer = new short[length];
-	f.read((char*)ibuffer, length * sizeof(short));
-	f.close();
-
+	readSampleFunction(s, ibuffer, length);
 	file->write((const char*)ibuffer, length * sizeof(short));
 	delete[] ibuffer;
 	return length;

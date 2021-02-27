@@ -15,10 +15,13 @@ namespace dat {
 	template <typename T>
 	using Container = std::vector<T>;
 	typedef int Id;
+	enum { StringLength = 20 };
+	typedef char StringType[StringLength];
 	enum { Unknown = -1 };
     enum For { ForUndefined, ForPreset, ForInstrument };
 	struct Modulator {
 		Id relatedTo = Unknown;
+		Id zone = Unknown;
 		For for_ = ForUndefined;
 		::Generator dst = Gen_StartAddrOfs;
 		int amount = 0;
@@ -32,6 +35,7 @@ namespace dat {
 	};
 	struct Generator {
 		Id relatedTo = Unknown;
+		Id zone = Unknown;
 		For for_ = ForUndefined;
 		::Generator gen = Gen_StartAddrOfs;
 		GeneratorAmount amount = {0};
@@ -39,7 +43,7 @@ namespace dat {
 
 	struct Preset {
 		Id id = Unknown;
-		std::string name;
+		StringType name = { 0 };
 		int preset = 0;
 		int bank = 0;
 		int presetBagNdx = 0;
@@ -50,7 +54,7 @@ namespace dat {
 
 	struct Instrument {
 		Id id = Unknown;
-		std::string name;
+		StringType name = { 0 };
 		int index = 0;
 	};
 
@@ -58,11 +62,12 @@ namespace dat {
 	{
 		Id instrument = Unknown;
 		Id preset = Unknown;
+		Id zone = Unknown;
 	};
 
 	struct SampleHeader {
 		Id id = Unknown;
-		std::string name;
+		StringType name = { 0 };
 		unsigned int start = 0;
 		unsigned int end = 0;
 		unsigned int loopstart =  0;
@@ -79,20 +84,21 @@ namespace dat {
 	{
 		Id instrument = Unknown;
 		Id sample = Unknown;
+		Id zone = Unknown;
 	};
 
 	struct SoundFontHeader {
-		sfVersionTag version = {0};
-		std::string engine;
-		std::string name;
-		std::string date;
-		std::string comment;
-		std::string tools;
-		std::string creator;
-		std::string product;
-		std::string copyright;
-		std::string irom;
-		sfVersionTag iver = {0};
+		sfVersionTag version = { 0 };
+		StringType engine = { 0 };
+		StringType name = { 0 };
+		StringType date = { 0 };
+		StringType comment = { 0 };
+		StringType tools = { 0 };
+		StringType creator = { 0 };
+		StringType product = { 0 };
+		StringType copyright = { 0 };
+		StringType irom = { 0 };
+		sfVersionTag iver = { 0 };
 	};
 
 	struct Skeleton {

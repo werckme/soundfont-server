@@ -32,12 +32,7 @@ void getZones(const QList<SfTools::Zone*> zones, dat::Skeleton& out, dat::For fo
 void writeSkeleton(const dat::Skeleton& skeleton, const std::string& path);
 void writeSamples(const dat::Skeleton& skeleton, const SfTools::SoundFont* sf, const std::string& basePath);
 
-struct Preset {
-	int bank = 0;
-	int preset = 0;
-};
-
-typedef std::vector<Preset> PresetFilter;
+int zoneIdCounter = -1;
 
 std::unique_ptr<SfTools::SoundFont> load(const std::string& sfPath)
 {
@@ -46,11 +41,12 @@ std::unique_ptr<SfTools::SoundFont> load(const std::string& sfPath)
 	return sf;
 }
 
-std::string getString(const char* str) {
+void getString(char* str, dat::StringType &dst) {
 	if (str == nullptr) {
-		return std::string();
+		return;
 	}
-	return std::string(str);
+	memcpy(&dst[0], str, dat::StringLength - 1);
+	dst[dat::StringLength - 1] = 0;
 }
 
 void process(const std::string& sfPath)
@@ -94,15 +90,15 @@ int main(int argc, const char** argv)
 void getHeader(const SfTools::SoundFont* sf, dat::Skeleton& out)
 {
 	dat::SoundFontHeader& header = out.header;
-	header.engine = getString(sf->engine);
-	header.name = getString(sf->name);
-	header.date = getString(sf->date);
-	header.comment = getString(sf->comment);
-	header.tools = getString(sf->tools);
-	header.creator = getString(sf->creator);
-	header.product = getString(sf->product);
-	header.copyright = getString(sf->copyright);
-	header.irom = getString(sf->irom);
+	getString(sf->engine, header.engine);
+	getString(sf->name, header.name);
+	getString(sf->date, header.date);
+	getString(sf->comment, header.comment);
+	getString(sf->tools, header.tools);
+	getString(sf->creator, header.creator);
+	getString(sf->product, header.product);
+	getString(sf->copyright, header.copyright);
+	getString(sf->irom, header.irom);
 	header.version = sf->version;
 	header.iver = sf->iver;
 }
@@ -113,7 +109,7 @@ void getPresets(const SfTools::SoundFont* sf, dat::Skeleton& out)
 	for (const auto* preset : sf->presets) {
 		dat::Preset outPreset;
 		outPreset.id = idCounter++;
-		outPreset.name = getString(preset->name);
+		getString(preset->name, outPreset.name);
 		outPreset.preset = preset->preset;
 		outPreset.bank = preset->bank;
 		outPreset.presetBagNdx = preset->presetBagNdx;
@@ -131,7 +127,7 @@ void getInstruments(const SfTools::SoundFont* sf, dat::Skeleton& out)
 	for (const auto* instrument : sf->instruments) {
 		dat::Instrument outInstrument;
 		outInstrument.id = idCounter++;
-		outInstrument.name = getString(instrument->name);
+		getString(instrument->name, outInstrument.name);
 		outInstrument.index = instrument->index;
 		getZones(instrument->zones, out, dat::ForInstrument, outInstrument.id);
 		out.instruments.push_back(outInstrument);
@@ -144,7 +140,7 @@ void getSamples(const SfTools::SoundFont* sf, dat::Skeleton& out)
 	for (const auto* sample : sf->samples) {
 		dat::SampleHeader outSample;
 		outSample.id = idCounter++;
-		outSample.name = getString(sample->name);
+		getString(sample->name, outSample.name);
 		outSample.start = sample->start;
 		outSample.end = sample->end;
 		outSample.loopstart = sample->loopstart;
@@ -161,25 +157,31 @@ void getSamples(const SfTools::SoundFont* sf, dat::Skeleton& out)
 void getZones(const QList<SfTools::Zone*> zones, dat::Skeleton& out, dat::For for_, dat::Id id)
 {
 	for (const auto* zone : zones) {
+		++zoneIdCounter;
 		for (const auto* generator : zone->generators) {
 			dat::Generator outGenerator;
 			outGenerator.relatedTo = id;
 			outGenerator.for_ = for_;
+			outGenerator.zone = zoneIdCounter;
 			outGenerator.amount.uword = generator->amount.sword;
 			outGenerator.gen = generator->gen;
-			out.generators.push_back(outGenerator);
 			if (for_ == dat::ForPreset && outGenerator.gen == Gen_Instrument) {
 				dat::Instrument2Preset i2p;
 				i2p.preset = id;
+				i2p.zone = zoneIdCounter;
 				i2p.instrument = (dat::Id)outGenerator.amount.uword;
 				out.instrument2Preset.push_back(i2p);
+				continue;
 			}
 			if (for_ == dat::ForInstrument && outGenerator.gen == Gen_SampleId) {
 				dat::Sample2Instrument s2i;
 				s2i.instrument = id;
+				s2i.zone = zoneIdCounter;
 				s2i.sample = (dat::Id)outGenerator.amount.uword;
 				out.sample2Instruments.push_back(s2i);
+				continue;
 			}
+			out.generators.push_back(outGenerator);
 		}
 		for (const auto* modulator : zone->modulators) {
 			dat::Modulator outModulator;
