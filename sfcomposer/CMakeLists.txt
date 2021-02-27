@@ -4,6 +4,7 @@ execute_process(COMMAND git --work-tree=. log --pretty=format:%h -n 1
               OUTPUT_VARIABLE GIT_VERSION)
 # Project name.
 project(sfcomposer)
+include_directories(src)
 add_subdirectory(src)
 
 
