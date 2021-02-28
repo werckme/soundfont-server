@@ -495,7 +495,7 @@ void printSampleIds(const filter::Filter& filter)
 	}
 	os << std::endl;
 #ifdef __EMSCRIPTEN__
-	tty << "]";
+	os << "]";
 	tty = os.str();
 #endif
 }

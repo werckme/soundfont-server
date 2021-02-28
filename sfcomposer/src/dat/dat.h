@@ -1,5 +1,5 @@
 #ifndef DAT_H
-#define DAT_h
+#define DAT_H
 
 #include <com.h>
 #include <vector>
