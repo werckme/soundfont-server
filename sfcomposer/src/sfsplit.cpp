@@ -194,10 +194,10 @@ void getZones(const QList<SfTools::Zone*> zones, dat::Skeleton& out, dat::For fo
 	}
 }
 
-template<typename T>
-void writeContainer(const dat::Container<T>& container, std::fstream &file)
+template<class TContainer>
+void writeContainer(const TContainer& container, std::fstream &file)
 {
-	size_t byteSize = sizeof(T) * container.size();
+	size_t byteSize = sizeof(typename TContainer::value_type) * container.size();
 	file << byteSize;
 	file.write((const char*)container.data(), byteSize);
 }
@@ -226,7 +226,7 @@ void writeSamples(const dat::Skeleton& skeleton, const SfTools::SoundFont* sf, c
 		std::vector<char> bff(byteSize);
 		std::fstream outfile(path.c_str(), std::ios_base::out | std::ios::binary);
 		std::fstream infile(sf->path.c_str(), std::ios_base::in | std::ios::binary);
-		infile.seekg(static_cast<size_t>(sf->samplePos) + sampleHeader.start);
+		infile.seekg(static_cast<size_t>(sf->samplePos) + (sampleHeader.start * sizeof(short)));
 		infile.read(bff.data(), byteSize);
 		outfile.write(bff.data(), byteSize);
 	}

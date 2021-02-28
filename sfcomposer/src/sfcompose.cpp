@@ -1,6 +1,6 @@
 
 const char* Help = "composes .smpl files and .skeleton to a soundfont file.\n\
-usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <outfile> [{bankNumber} {presetNumber} ...]";
+usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfile> [{bankNumber} {presetNumber} ...]";
 
 #if WIN32
 #define _CRTDBG_MAP_ALLOC
@@ -22,10 +22,23 @@ usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <outfile> [{bankNumber} {pr
 #include <set>
 #include <unordered_map>
 #include <fstream>
-#include <filesystem>
+
+#ifdef WIN32
+#define PATH_SEP '\\'
+#else
+#define PATH_SEP '/'
+#endif
+
+struct Preset {
+	int bank = 0;
+	int preset = 0;
+};
+
+typedef std::vector<Preset> PresetFilter;
 
 struct SfDb {
 	std::string sampleFolder;
+	std::string samplePathTemplate;
 	std::unordered_map<dat::Id, SfTools::Preset*> presets;
 	std::unordered_map<dat::Id, SfTools::Instrument*> instruments;
 	std::unordered_map<dat::Id, size_t> instrumentIndices;
@@ -44,12 +57,6 @@ void writeZones(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db)
 void linkInstrumentsToPresets(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void linkSamplesToInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void readSample(SfTools::Sample* sample, const SfDb& db, short *outBff, int length);
-struct Preset {
-	int bank = 0;
-	int preset = 0;
-};
-
-typedef std::vector<Preset> PresetFilter;
 
 std::unique_ptr<SfTools::SoundFont> load(const std::string& sfPath)
 {
@@ -77,9 +84,17 @@ void saveAs(SfTools::SoundFont* sf, const std::string& newPath)
 
 void process(const std::string& skeletonPath, const std::string& sampleFolder)
 {
+	if (sampleFolder.empty()) {
+		throw std::runtime_error("missing sample folder argument");
+	}
 	dat::Skeleton skeleton;
+	dat::Container<dat::Preset> tmp;
 	SfDb db;
 	db.sampleFolder = sampleFolder;
+	db.samplePathTemplate = "FluidR3_GM.sf2.";
+	if (db.sampleFolder.back() != PATH_SEP) {
+		db.sampleFolder.push_back(PATH_SEP);
+	}
 	read(skeletonPath, skeleton);
 	SfTools::SoundFont sf;
 	using namespace std::placeholders;
@@ -304,9 +319,19 @@ void linkSamplesToInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont*
 void readSample(SfTools::Sample* sample, const SfDb& db, short* outBff, int length)
 {
 	auto headerIt = db.sampleHeaders.find(sample);
+	auto byteSize = length * sizeof(short);
 	if (headerIt == db.sampleHeaders.end()) {
 		throw std::runtime_error("sample header not found");
 	}
 	auto header = headerIt->second;
-	
+	auto samplePath = db.sampleFolder + db.samplePathTemplate + std::to_string(header->id) + ".smpl";
+	std::fstream file(samplePath.c_str(), std::ios_base::in | std::ios_base::binary);
+	auto fsize = file.tellg();
+	file.seekg(0, std::ios_base::end);
+	fsize = file.tellg() - fsize;
+	if (fsize != byteSize) {
+		throw std::runtime_error(samplePath + " file size mismatch expected " + std::to_string(byteSize) + " but was " + std::to_string(fsize));
+	}
+	file.seekg(0, std::ios_base::beg);
+	file.read((char*)outBff, byteSize);
 }
