@@ -41,17 +41,16 @@ namespace filter {
 		std::unordered_set<dat::Id> _presetsToKeep;
 		std::unordered_set<dat::Id> _instrumentsToKeep;
 		std::unordered_set<dat::Id> _samplesToKeep;
-		bool _keep(dat::Id id, std::unordered_set<dat::Id> container) const
+		bool _keep(dat::Id id, const std::unordered_set<dat::Id> &container) const
 		{
 			if (container.empty()) {
 				return true;
 			}
 			return container.find(id) != container.end();
-			return true;
 		}
-		bool keepPreset(dat::Id id) const { return _keep(id, _presetsToKeep); }
-		bool keepInstrument(dat::Id id) const { return _keep(id, _instrumentsToKeep); }
-		bool keepSample(dat::Id id) const { return _keep(id, _samplesToKeep); }
+		inline bool keepPreset(dat::Id id) const { return _keep(id, _presetsToKeep); }
+		inline bool keepInstrument(dat::Id id) const { return _keep(id, _instrumentsToKeep); }
+		inline bool keepSample(dat::Id id) const { return _keep(id, _samplesToKeep); }
 	};
 }
 
