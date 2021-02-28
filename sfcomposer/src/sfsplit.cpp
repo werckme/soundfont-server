@@ -198,7 +198,10 @@ template<class TContainer>
 void writeContainer(const TContainer& container, std::fstream &file)
 {
 	size_t byteSize = sizeof(typename TContainer::value_type) * container.size();
-	file << byteSize;
+	file.write(reinterpret_cast<char*>(&byteSize), sizeof(size_t));
+	if (byteSize == 0) {
+		return;
+	}
 	file.write((const char*)container.data(), byteSize);
 }
 

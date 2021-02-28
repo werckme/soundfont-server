@@ -129,7 +129,7 @@ void process(const std::string& skeletonPath, const std::string& sampleFolder, c
 	dat::Container<dat::Preset> tmp;
 	SfDb db;
 	db.sampleFolder = sampleFolder;
-	db.samplePathTemplate = "freepats-general-midi.";
+	db.samplePathTemplate = "freepats-general-midi.sf2.";
 	if (db.sampleFolder.back() != PATH_SEP) {
 		db.sampleFolder.push_back(PATH_SEP);
 	}
@@ -186,7 +186,7 @@ template<typename T>
 void readContainer(dat::Container<T>& container, std::fstream& file)
 {
 	size_t byteSize = 0;
-	file >> byteSize;
+	file.read(reinterpret_cast<char*>(&byteSize), sizeof(size_t));
 	if (byteSize == 0) {
 		return;
 	}
