@@ -1,6 +1,9 @@
 
 const char* Help = "composes .smpl files and .skeleton to a soundfont file.\n\
-usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfile> [{bankNumber} {presetNumber} ...]";
+usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfile> [{bankNumber} {presetNumber} ...]\n\
+	   to get a list of all needed samples (ids): \n\
+	   sfcompose --getsampleids [{bankNumber} {presetNumber} ...]\n\
+";
 
 #if WIN32
 #define _CRTDBG_MAP_ALLOC
@@ -54,6 +57,11 @@ namespace filter {
 	};
 }
 
+struct Options {
+	filter::Presets filter;
+	bool printIds = false;
+};
+
 struct SfDb {
 	std::string sampleFolder;
 	std::string samplePathTemplate;
@@ -78,6 +86,7 @@ void writeZonesSum(SfTools::SoundFont* sf);
 void linkInstrumentsToPresets(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void linkSamplesToInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void readSample(SfTools::Sample* sample, const SfDb& db, short *outBff, int length);
+void printSampleIds(const filter::Filter& filter);
 
 std::unique_ptr<SfTools::SoundFont> load(const std::string& sfPath)
 {
@@ -111,7 +120,7 @@ filter::Presets __() {
 	return result;
 }
 
-void process(const std::string& skeletonPath, const std::string& sampleFolder)
+void process(const std::string& skeletonPath, const std::string& sampleFolder, const Options &options)
 {
 	if (sampleFolder.empty()) {
 		throw std::runtime_error("missing sample folder argument");
@@ -120,13 +129,19 @@ void process(const std::string& skeletonPath, const std::string& sampleFolder)
 	dat::Container<dat::Preset> tmp;
 	SfDb db;
 	db.sampleFolder = sampleFolder;
-	db.samplePathTemplate = "FluidR3_GM.sf2.";
+	db.samplePathTemplate = "freepats-general-midi.";
 	if (db.sampleFolder.back() != PATH_SEP) {
 		db.sampleFolder.push_back(PATH_SEP);
 	}
-	read(skeletonPath, skeleton);	SfTools::SoundFont sf;
+	read(skeletonPath, skeleton);
 	db.filter = createFilter(__(), skeleton);
+	if (options.printIds) {
+		printSampleIds(db.filter);
+		return;
+	}
+
 	using namespace std::placeholders;
+	SfTools::SoundFont sf;
 	sf.readSampleFunction = std::bind(&readSample, _1, std::ref(db), _2, _3);
 	writeHeader(skeleton, &sf);
 	writePresets(skeleton, &sf, db);
@@ -157,7 +172,8 @@ int main(int argc, const char** argv)
 			printHelp();
 			return 0;
 		}
-		process(argv[1], argv[2]);
+		Options options;
+		process(argv[1], argv[2], options);
 	}
 	catch (const std::exception& ex) {
 		std::cout << ex.what() << std::endl;
@@ -174,7 +190,8 @@ void readContainer(dat::Container<T>& container, std::fstream& file)
 	if (byteSize == 0) {
 		return;
 	}
-	container.resize(byteSize / sizeof(T));
+	auto size = byteSize / sizeof(T);
+	container.resize(size);
 	file.read((char*)container.data(), byteSize);
 }
 
@@ -286,7 +303,6 @@ SfTools::Zone* getPresetZone(dat::Id presetId, dat::Id zoneId, SfTools::SoundFon
 	auto zone = new SfTools::Zone();
 	db.zones.insert(std::make_pair(zoneId, zone));
 	db.presets[presetId]->zones.push_back(zone);
-	//sf->pZones.push_back(zone);
 	return zone;
 }
 
@@ -299,7 +315,6 @@ SfTools::Zone* getInstrumentZone(dat::Id instrumentId, dat::Id zoneId, SfTools::
 	auto zone = new SfTools::Zone();
 	db.zones.insert(std::make_pair(zoneId, zone));
 	db.instruments[instrumentId]->zones.push_back(zone);
-	//sf->iZones.push_back(zone);
 	return zone;
 }
 
@@ -433,4 +448,18 @@ void writeZonesSum(SfTools::SoundFont* sf)
 			sf->iZones.push_back(zone);
 		}
 	}
+}
+
+void printSampleIds(const filter::Filter& filter)
+{
+	bool first = true;
+	for (auto sampleId : filter._samplesToKeep) {
+		if (first) {
+			std::cout << sampleId;
+			first = false;
+			continue;
+		}
+		std::cout << "," << sampleId;
+	}
+	std::cout << std::endl;
 }
