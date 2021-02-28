@@ -19,7 +19,7 @@ usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfi
 #include <vector>
 #include <algorithm>
 #include <list>
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 #include <fstream>
 
@@ -29,16 +29,36 @@ usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfi
 #define PATH_SEP '/'
 #endif
 
-struct Preset {
-	int bank = 0;
-	int preset = 0;
-};
+namespace filter {
+	struct Preset {
+		int bank = 0;
+		int preset = 0;
+	};
 
-typedef std::vector<Preset> PresetFilter;
+	typedef std::vector<Preset> Presets;
+	struct Filter {
+		Presets keep;
+		std::unordered_set<dat::Id> _presetsToKeep;
+		std::unordered_set<dat::Id> _instrumentsToKeep;
+		std::unordered_set<dat::Id> _samplesToKeep;
+		bool _keep(dat::Id id, std::unordered_set<dat::Id> container) const
+		{
+			if (container.empty()) {
+				return true;
+			}
+			return container.find(id) != container.end();
+			return true;
+		}
+		bool keepPreset(dat::Id id) const { return _keep(id, _presetsToKeep); }
+		bool keepInstrument(dat::Id id) const { return _keep(id, _instrumentsToKeep); }
+		bool keepSample(dat::Id id) const { return _keep(id, _samplesToKeep); }
+	};
+}
 
 struct SfDb {
 	std::string sampleFolder;
 	std::string samplePathTemplate;
+	filter::Filter filter;
 	std::unordered_map<dat::Id, SfTools::Preset*> presets;
 	std::unordered_map<dat::Id, SfTools::Instrument*> instruments;
 	std::unordered_map<dat::Id, size_t> instrumentIndices;
@@ -49,6 +69,7 @@ struct SfDb {
 };
 
 void read(const std::string& skeletonPath, dat::Skeleton& skeleton);
+filter::Filter createFilter(const filter::Presets& keep, const dat::Skeleton& skeleton);
 void writeHeader(const dat::Skeleton& skeleton, SfTools::SoundFont* sf);
 void writePresets(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void writeInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
@@ -82,6 +103,14 @@ void saveAs(SfTools::SoundFont* sf, const std::string& newPath)
 	sf->file = nullptr;
 }
 
+filter::Presets __() {
+	filter::Presets result;
+	/*for (int i = 50; i < 128; ++i) {
+		result.push_back({ 0, i });
+	}*/
+	return result;
+}
+
 void process(const std::string& skeletonPath, const std::string& sampleFolder)
 {
 	if (sampleFolder.empty()) {
@@ -95,8 +124,8 @@ void process(const std::string& skeletonPath, const std::string& sampleFolder)
 	if (db.sampleFolder.back() != PATH_SEP) {
 		db.sampleFolder.push_back(PATH_SEP);
 	}
-	read(skeletonPath, skeleton);
-	SfTools::SoundFont sf;
+	read(skeletonPath, skeleton);	SfTools::SoundFont sf;
+	db.filter = createFilter(__(), skeleton);
 	using namespace std::placeholders;
 	sf.readSampleFunction = std::bind(&readSample, _1, std::ref(db), _2, _3);
 	writeHeader(skeleton, &sf);
@@ -190,6 +219,9 @@ void writePresets(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& d
 {
 	for (const auto& preset : skeleton.presets)
 	{
+		if (!db.filter.keepPreset(preset.id)) {
+			continue;
+		}
 		auto sfpreset = new SfTools::Preset();
 		sf->presets.push_back(sfpreset);
 		getString(&sfpreset->name, preset.name);
@@ -207,6 +239,9 @@ void writeInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfD
 {
 	for (const auto& instrument : skeleton.instruments)
 	{
+		if (!db.filter.keepInstrument(instrument.id)) {
+			continue;
+		}
 		auto sfInstrument = new SfTools::Instrument();
 		getString(&sfInstrument->name, instrument.name);
 		sfInstrument->index = instrument.index;
@@ -218,7 +253,11 @@ void writeInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfD
 
 void writeSamples(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db)
 {
+
 	for (const auto& sample : skeleton.samples) {
+		if (!db.filter.keepSample(sample.id)) {
+			continue;
+		}
 		auto sfSample = new SfTools::Sample();
 		getString(&sfSample->name, sample.name);
 		sfSample->start = sample.start;
@@ -267,7 +306,13 @@ SfTools::Zone* getInstrumentZone(dat::Id instrumentId, dat::Id zoneId, SfTools::
 void writeZones(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db)
 {
 	for (const auto& generator : skeleton.generators) {
-		auto zone = generator.for_ == dat::ForInstrument ? getInstrumentZone(generator.relatedTo, generator.zone, sf, db)
+		bool keep = generator.for_ == dat::ForInstrument 
+			? db.filter.keepInstrument(generator.relatedTo) : db.filter.keepPreset(generator.relatedTo);
+		if (!keep) {
+			continue;
+		}
+		auto zone = generator.for_ == dat::ForInstrument 
+			? getInstrumentZone(generator.relatedTo, generator.zone, sf, db)
 			: getPresetZone(generator.relatedTo, generator.zone, sf, db);
 		auto sfGen = new SfTools::GeneratorList();
 		sfGen->amount.uword = generator.amount.uword;
@@ -276,6 +321,11 @@ void writeZones(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db)
 	}
 
 	for (const auto& modulator : skeleton.modulators) {
+		bool keep = modulator.for_ == dat::ForInstrument 
+			? db.filter.keepInstrument(modulator.relatedTo) : db.filter.keepPreset(modulator.relatedTo);
+		if (!keep) {
+			continue;
+		}
 		auto zone = modulator.for_ == dat::ForInstrument ? getInstrumentZone(modulator.relatedTo, modulator.zone, sf, db)
 			: getPresetZone(modulator.relatedTo, modulator.zone, sf, db);
 		auto sfMod = new SfTools::ModulatorList();
@@ -289,6 +339,9 @@ void writeZones(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db)
 void linkInstrumentsToPresets(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db)
 {
 	for (const auto& rel : skeleton.instrument2Preset) {
+		if (!db.filter.keepInstrument(rel.instrument) || !db.filter.keepPreset(rel.preset)) {
+			continue;
+		}
 		if (db.instrumentIndices.find(rel.instrument) == db.instrumentIndices.end()) {
 			throw std::runtime_error("instrument " + std::to_string(rel.instrument) + " not found");
 		}
@@ -304,6 +357,9 @@ void linkInstrumentsToPresets(const dat::Skeleton& skeleton, SfTools::SoundFont*
 void linkSamplesToInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db)
 {
 	for (const auto& rel : skeleton.sample2Instruments) {
+		if (!db.filter.keepSample(rel.sample) || !db.filter.keepInstrument(rel.instrument)) {
+			continue;
+		}
 		if (db.sampleIndices.find(rel.sample) == db.sampleIndices.end()) {
 			throw std::runtime_error("sample " + std::to_string(rel.sample) + " not found");
 		}
@@ -334,4 +390,31 @@ void readSample(SfTools::Sample* sample, const SfDb& db, short* outBff, int leng
 	}
 	file.seekg(0, std::ios_base::beg);
 	file.read((char*)outBff, byteSize);
+}
+
+filter::Filter createFilter(const filter::Presets& keep, const dat::Skeleton& skeleton)
+{
+	filter::Filter filter;
+	filter.keep = keep;
+	for (const auto& preset : skeleton.presets) {
+		bool found = std::find_if(keep.begin(), keep.end(), [&preset](const auto& x) { 
+			return x.bank == preset.bank && x.preset == preset.preset; 
+		}) != keep.end();
+		if (found) {
+			filter._presetsToKeep.insert(preset.id);
+		}
+	}
+	for (const auto& rel : skeleton.instrument2Preset) {
+		bool found = filter.keepPreset(rel.preset);
+		if (found) {
+			filter._instrumentsToKeep.insert(rel.instrument);
+		}
+	}
+	for (const auto& rel : skeleton.sample2Instruments) {
+		bool found = filter.keepInstrument(rel.instrument);
+		if (found) {
+			filter._samplesToKeep.insert(rel.sample);
+		}
+	}
+	return filter;
 }
