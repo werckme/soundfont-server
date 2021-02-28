@@ -75,6 +75,7 @@ void writePresets(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& d
 void writeInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void writeSamples(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void writeZones(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
+void writeZonesSum(SfTools::SoundFont* sf);
 void linkInstrumentsToPresets(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void linkSamplesToInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void readSample(SfTools::Sample* sample, const SfDb& db, short *outBff, int length);
@@ -135,6 +136,7 @@ void process(const std::string& skeletonPath, const std::string& sampleFolder)
 	writeZones(skeleton, &sf, db);
 	linkInstrumentsToPresets(skeleton, &sf, db);
 	linkSamplesToInstruments(skeleton, &sf, db);
+	writeZonesSum(&sf);
 	saveAs(&sf, "copy.sf2");
 }
 
@@ -285,7 +287,7 @@ SfTools::Zone* getPresetZone(dat::Id presetId, dat::Id zoneId, SfTools::SoundFon
 	auto zone = new SfTools::Zone();
 	db.zones.insert(std::make_pair(zoneId, zone));
 	db.presets[presetId]->zones.push_back(zone);
-	sf->pZones.push_back(zone);
+	//sf->pZones.push_back(zone);
 	return zone;
 }
 
@@ -298,7 +300,7 @@ SfTools::Zone* getInstrumentZone(dat::Id instrumentId, dat::Id zoneId, SfTools::
 	auto zone = new SfTools::Zone();
 	db.zones.insert(std::make_pair(zoneId, zone));
 	db.instruments[instrumentId]->zones.push_back(zone);
-	sf->iZones.push_back(zone);
+	//sf->iZones.push_back(zone);
 	return zone;
 }
 
@@ -417,4 +419,19 @@ filter::Filter createFilter(const filter::Presets& keep, const dat::Skeleton& sk
 		}
 	}
 	return filter;
+}
+
+void writeZonesSum(SfTools::SoundFont* sf)
+{
+	for (auto* preset : sf->presets) {
+		for (auto* zone : preset->zones) {
+			sf->pZones.push_back(zone);
+		}
+	}
+
+	for (auto* instrument : sf->instruments) {
+		for (auto* zone : instrument->zones) {
+			sf->iZones.push_back(zone);
+		}
+	}
 }
