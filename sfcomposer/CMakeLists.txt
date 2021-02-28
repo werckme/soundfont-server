@@ -13,6 +13,10 @@ if ("${CMAKE_SYSTEM}" MATCHES "Emscripten*")
     configure_file("package.in.json" "${CMAKE_BINARY_DIR}/package.json")
 endif()
 
+project(sfcomposer)
+include_directories(src)
+add_subdirectory(src)
+
 include(InstallRequiredSystemLibraries)
 set(CPACK_PACKAGE_VENDOR "Samba Godschynski")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE")
@@ -21,8 +25,3 @@ set(CPACK_PACKAGE_VERSION_MINOR "${SF_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${SF_VERSION_PATCH}")
 
 include(CPack)
-
-# Project name.
-project(sfcomposer)
-include_directories(src)
-add_subdirectory(src)
