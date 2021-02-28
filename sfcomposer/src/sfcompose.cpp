@@ -5,6 +5,8 @@ usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfi
 	   sfcompose --getsampleids [{bankNumber} {presetNumber} ...]\n\
 ";
 
+#define EMPTY_FILTER_MEANS_ALL 0
+
 #if WIN32
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -46,9 +48,11 @@ namespace filter {
 		std::unordered_set<dat::Id> _samplesToKeep;
 		bool _keep(dat::Id id, const std::unordered_set<dat::Id> &container) const
 		{
+#if EMPTY_FILTER_MEANS_ALL==1
 			if (container.empty()) {
 				return true;
 			}
+#endif
 			return container.find(id) != container.end();
 		}
 		inline bool keepPreset(dat::Id id) const { return _keep(id, _presetsToKeep); }
@@ -58,8 +62,13 @@ namespace filter {
 }
 
 struct Options {
+	std::string skeletonPath;
+	std::string samplePathTemplate;
+	std::string sampleFolder;
+	std::string outfile;
 	filter::Presets filter;
 	bool printIds = false;
+	bool valid = true;
 };
 
 struct SfDb {
@@ -87,6 +96,7 @@ void linkInstrumentsToPresets(const dat::Skeleton& skeleton, SfTools::SoundFont*
 void linkSamplesToInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void readSample(SfTools::Sample* sample, const SfDb& db, short *outBff, int length);
 void printSampleIds(const filter::Filter& filter);
+Options getOptions(int argc, const char** argv);
 
 std::unique_ptr<SfTools::SoundFont> load(const std::string& sfPath)
 {
@@ -112,34 +122,22 @@ void saveAs(SfTools::SoundFont* sf, const std::string& newPath)
 	sf->file = nullptr;
 }
 
-filter::Presets __() {
-	filter::Presets result;
-	/*for (int i = 50; i < 128; ++i) {
-		result.push_back({ 0, i });
-	}*/
-	return result;
-}
-
-void process(const std::string& skeletonPath, const std::string& sampleFolder, const Options &options)
+void process(const Options &options)
 {
-	if (sampleFolder.empty()) {
-		throw std::runtime_error("missing sample folder argument");
-	}
 	dat::Skeleton skeleton;
 	dat::Container<dat::Preset> tmp;
 	SfDb db;
-	db.sampleFolder = sampleFolder;
-	db.samplePathTemplate = "freepats-general-midi.sf2.";
-	if (db.sampleFolder.back() != PATH_SEP) {
-		db.sampleFolder.push_back(PATH_SEP);
-	}
-	read(skeletonPath, skeleton);
-	db.filter = createFilter(__(), skeleton);
+	read(options.skeletonPath, skeleton);
+	db.filter = createFilter(options.filter, skeleton);
 	if (options.printIds) {
 		printSampleIds(db.filter);
 		return;
 	}
-
+	db.sampleFolder = options.sampleFolder;
+	db.samplePathTemplate = options.samplePathTemplate;
+	if (db.sampleFolder.back() != PATH_SEP) {
+		db.sampleFolder.push_back(PATH_SEP);
+	}
 	using namespace std::placeholders;
 	SfTools::SoundFont sf;
 	sf.readSampleFunction = std::bind(&readSample, _1, std::ref(db), _2, _3);
@@ -151,7 +149,7 @@ void process(const std::string& skeletonPath, const std::string& sampleFolder, c
 	linkInstrumentsToPresets(skeleton, &sf, db);
 	linkSamplesToInstruments(skeleton, &sf, db);
 	writeZonesSum(&sf);
-	saveAs(&sf, "copy.sf2");
+	saveAs(&sf, options.outfile);
 }
 
 void printHelp()
@@ -159,21 +157,19 @@ void printHelp()
 	std::cout << Help << std::endl;
 }
 
+
 int main(int argc, const char** argv)
 {
 #if WIN32
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 	try {
-		if (argc >= 2 && std::string(argv[1]) == "--help") {
+		Options options = getOptions(argc, argv);
+		if (!options.valid) {
 			printHelp();
+			return -1;
 		}
-		if (argc < 4) {
-			printHelp();
-			return 0;
-		}
-		Options options;
-		process(argv[1], argv[2], options);
+		process(options);
 	}
 	catch (const std::exception& ex) {
 		std::cout << ex.what() << std::endl;
@@ -462,4 +458,62 @@ void printSampleIds(const filter::Filter& filter)
 		std::cout << "," << sampleId;
 	}
 	std::cout << std::endl;
+}
+
+//const char* Help = "composes .smpl files and .skeleton to a soundfont file.\n\
+//usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfile> [{bankNumber} {presetNumber} ...]\n\
+//	   to get a list of all needed samples (ids): \n\
+//	   sfcompose <pathToSkeleton> --getsampleids  [{bankNumber} {presetNumber} ...]\n\
+//";
+Options getOptions(int argc, const char** argv)
+{
+	Options options;
+	std::vector<dat::Id> ids;
+	ids.reserve(argc);
+	for (int i = 1; i < argc; ++i) {
+		auto arg = std::string(argv[i]);
+		if (arg == "--getsampleids") {
+			options.printIds = true;
+			continue;
+		}
+		if (i == 1 && !options.printIds) {
+			options.skeletonPath = arg;
+			continue;
+		}
+		if (i == 2 && !options.printIds) {
+			options.sampleFolder = arg;
+			continue;
+		}
+		if (i == 3 && !options.printIds) {
+			options.samplePathTemplate = arg;
+			continue;
+		}
+		if (i == 4 && !options.printIds) {
+			options.outfile = arg;
+			continue;
+		}
+		ids.push_back(atoi(arg.c_str()));
+	}
+	if (ids.empty() || ids.size() % 2 != 0) {
+		options.valid = false;
+	}
+	if (options.skeletonPath.empty()) {
+		options.valid = false;
+	}
+	if (!options.printIds && options.sampleFolder.empty()) {
+		options.valid = false;
+	}
+	if (!options.printIds && options.samplePathTemplate.empty()) {
+		options.valid = false;
+	}
+	if (!options.printIds && options.outfile.empty()) {
+		options.valid = false;
+	}
+	if (!options.valid) {
+		return options;
+	}
+	for (int i = 0; i < ids.size(); i += 2) {
+		options.filter.push_back({ids.at(i), ids.at((int)(i+1))});
+	}
+	return options;
 }
