@@ -1,0 +1,15 @@
+{
+    "name": "@werckmeister/sfcompose",
+    "description": "creates a soundfont file with a skeleton and sample files",
+    "version": "@SF_VERSION_MAJOR@.@SF_VERSION_MINOR@.@SF_VERSION_PATCH@-@BUILD_NR@",
+    "homepage": "https://github.com/SambaGodschynski/soundfont-server",
+    "engines": {
+        "node": ">= 0.6.0"
+    },
+    "author": "Samba Godschynski (werckmeister@vstforx.de)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/SambaGodschynski/soundfont-serve"
+    },
+    "license": "GPL-3.0"
+}

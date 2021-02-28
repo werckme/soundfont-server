@@ -27,11 +27,16 @@ usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfi
 #include <unordered_set>
 #include <unordered_map>
 #include <fstream>
+#include <sstream>
 
 #ifdef WIN32
 #define PATH_SEP '\\'
 #else
 #define PATH_SEP '/'
+#endif
+
+#ifdef __EMSCRIPTEN__
+std::string tty;
 #endif
 
 namespace filter {
@@ -157,9 +162,33 @@ void printHelp()
 	std::cout << Help << std::endl;
 }
 
+const char * create_c_str(const std::string &input) 
+{
+	auto bff = new char[input.length() + 1];
+	strcpy(&bff[0], input.c_str());
+	bff[input.length() - 1] = '\0';
+	return &bff[0];
+}
+
+
+#ifdef __EMSCRIPTEN__
+extern "C" const char * composejs(int argc, const char** argv)
+{
+	Options options = getOptions(argc, argv);
+	if (!options.valid) {
+		return create_c_str("{error: \"options invalid\"}");
+	}
+	process(options);
+	return create_c_str(tty);
+
+}
+#endif
 
 int main(int argc, const char** argv)
 {
+#ifdef __EMSCRIPTEN__
+	return 0;
+#endif
 #if WIN32
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
@@ -448,16 +477,27 @@ void writeZonesSum(SfTools::SoundFont* sf)
 
 void printSampleIds(const filter::Filter& filter)
 {
+#ifdef __EMSCRIPTEN__
+	std::stringstream ss;
+	auto &os = ss;
+	os << "[";
+#else
+	auto &os = std::cout;
+#endif
 	bool first = true;
 	for (auto sampleId : filter._samplesToKeep) {
 		if (first) {
-			std::cout << sampleId;
+			os << sampleId;
 			first = false;
 			continue;
 		}
-		std::cout << "," << sampleId;
+		os << "," << sampleId;
 	}
-	std::cout << std::endl;
+	os << std::endl;
+#ifdef __EMSCRIPTEN__
+	tty << "]";
+	tty = os.str();
+#endif
 }
 
 //const char* Help = "composes .smpl files and .skeleton to a soundfont file.\n\
