@@ -24,7 +24,7 @@ jobs:
       run: mkdir build
       working-directory: sfcomposer      
     - name: configure
-      run: source ../third_party/emsdk/emsdk_env.sh && emcmake cmake -DCMAKE_BUILD_TYPE=Release ..
+      run: source ../emsdk/emsdk_env.sh && emcmake cmake -DCMAKE_BUILD_TYPE=Release ..
       working-directory: sfcomposer/build
       env: 
         BUILD_NR: ${{ github.run_number }}
