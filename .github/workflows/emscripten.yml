@@ -40,8 +40,8 @@ jobs:
         path: sfcomposer/build/sfcomposer-*-Emscripten.zip
     - name: Publish
       run: |
-          unzip werckmeister-*-Emscripten.zip
-          cd werckmeister-*-Emscripten
+          unzip sfcomposer-*-Emscripten.zip
+          cd sfcomposer-*-Emscripten
           npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
           npm publish --ignore-scripts --access=public
       working-directory: sfcomposer/build
