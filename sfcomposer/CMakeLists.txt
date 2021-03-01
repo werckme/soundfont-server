@@ -7,7 +7,7 @@ SET(SF_VERSION_PATCH 0)
 execute_process(COMMAND git --work-tree=. log --pretty=format:%h -n 1
               OUTPUT_VARIABLE GIT_VERSION)
 
-if (EMSCRIPTEN)
+if (EMSCRIPTEN OR $ENV{EMSCRIPTEN})
     MESSAGE("using emscripten")
     SET(USE_EMSCRIPTEN 1)
     configure_file("package.in.json" "${CMAKE_BINARY_DIR}/package.json")
