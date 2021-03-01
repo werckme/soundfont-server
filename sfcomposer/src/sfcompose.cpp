@@ -165,8 +165,8 @@ void printHelp()
 const char * create_c_str(const std::string &input) 
 {
 	auto bff = new char[input.length() + 1];
+	memset(&bff[0], 0, input.length() + 1);
 	strcpy(&bff[0], input.c_str());
-	bff[input.length() - 1] = '\0';
 	return &bff[0];
 }
 
