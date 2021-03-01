@@ -38,3 +38,12 @@ jobs:
       with:
         name: sfcomposer-linux-${{ github.sha }}
         path: sfcomposer/build/sfcomposer-*-Emscripten.zip
+    - name: Publish
+      run: |
+          unzip werckmeister-*-Emscripten.zip
+          cd werckmeister-*-Emscripten
+          npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
+          npm publish --ignore-scripts --access=public
+      working-directory: sfcomposer/build
+      env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
