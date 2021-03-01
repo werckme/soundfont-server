@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.11)
 
-SET(SF_VERSION_MAJOR 0)
-SET(SF_VERSION_MINOR 1)
-SET(SF_VERSION_PATCH 56)
+SET(SF_VERSION_MAJOR 1)
+SET(SF_VERSION_MINOR 0)
+SET(SF_VERSION_PATCH 0)
 
 execute_process(COMMAND git --work-tree=. log --pretty=format:%h -n 1
               OUTPUT_VARIABLE GIT_VERSION)
 
-if ("${CMAKE_SYSTEM}" MATCHES "Emscripten*")
+if (EMSCRIPTEN)
     MESSAGE("using emscripten")
     SET(USE_EMSCRIPTEN 1)
     configure_file("package.in.json" "${CMAKE_BINARY_DIR}/package.json")
