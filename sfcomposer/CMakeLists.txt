@@ -7,11 +7,18 @@ SET(SF_VERSION_PATCH 0)
 execute_process(COMMAND git --work-tree=. log --pretty=format:%h -n 1
               OUTPUT_VARIABLE GIT_VERSION)
 
+if(${GIT_BRANCH_NAME} MATCHES "main[ \t\r\n]*")
+    SET(BUILD_NR $ENV{BUILD_NR}) 
+else()
+    SET(BUILD_NR dev-$ENV{BUILD_NR}) 
+endif()
+
 if (${EMSCRIPTEN})
     MESSAGE("using emscripten")
     SET(USE_EMSCRIPTEN 1)
     configure_file("package.in.json" "${CMAKE_BINARY_DIR}/package.json")
 endif()
+
 
 project(sfcomposer)
 include_directories(src)
