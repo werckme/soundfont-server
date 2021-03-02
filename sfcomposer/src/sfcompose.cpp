@@ -75,6 +75,7 @@ struct Options {
 	filter::Presets filter;
 	bool printIds = false;
 	bool valid = true;
+	std::string error;
 };
 
 struct SfDb {
@@ -102,7 +103,8 @@ void linkInstrumentsToPresets(const dat::Skeleton& skeleton, SfTools::SoundFont*
 void linkSamplesToInstruments(const dat::Skeleton& skeleton, SfTools::SoundFont* sf, SfDb& db);
 void readSample(SfTools::Sample* sample, const SfDb& db, short *outBff, int length);
 void printSampleIds(const filter::Filter& filter);
-Options getOptions(int argc, const char** argv);
+template <class TIterator>
+Options getOptions(TIterator begin, TIterator end);
 
 std::unique_ptr<SfTools::SoundFont> load(const std::string& sfPath)
 {
@@ -173,22 +175,38 @@ const char * create_c_str(const std::string &input)
 
 
 #ifdef __EMSCRIPTEN__
-extern "C" const char * composejs(const char* _args)
+
+extern "C" const char * debug_args(const char* _args)
 {
 	std::stringstream ss(_args);
 	std::vector<std::string> args = { "dummy" };
-	std::vector<const char*> cstringCopy = { args[0].c_str() };
 	while(!ss.eof()) {
 		std::string arg;
 		ss >> arg;
 		args.push_back(arg);
-		cstringCopy.push_back(args.back().c_str());
+	}
+	ss = std::stringstream();
+	for(const auto &arg : args) {
+		ss << arg << ", ";
+	}
+	return create_c_str(ss.str());
+}
+
+extern "C" const char * composejs(const char* _args)
+{
+	tty = "";
+	std::stringstream ss(_args);
+	std::vector<std::string> args = { "dummy" };
+	while(!ss.eof()) {
+		std::string arg;
+		ss >> arg;
+		args.push_back(arg);
 	}
 
-	Options options = getOptions(args.size(), cstringCopy.data());
+	Options options = getOptions(args.begin(), args.end());
 
 	if (!options.valid) {
-		return create_c_str("{error: \"options invalid\"}");
+		return create_c_str("{\"error\": \"options invalid: " + options.error + " \"}");
 	}
 	try {
 		process(options);
@@ -210,7 +228,7 @@ int main(int argc, const char** argv)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 	try {
-		Options options = getOptions(argc, argv);
+		Options options = getOptions(argv, argv + argc);
 		if (!options.valid) {
 			printHelp();
 			return -1;
@@ -522,13 +540,16 @@ void printSampleIds(const filter::Filter& filter)
 //	   to get a list of all needed samples (ids): \n\
 //	   sfcompose <pathToSkeleton> --getsampleids  [{bankNumber} {presetNumber} ...]\n\
 //";
-Options getOptions(int argc, const char** argv)
+template <class TIterator>
+Options getOptions(TIterator begin, TIterator end)
 {
 	Options options;
 	std::vector<dat::Id> ids;
-	ids.reserve(argc);
-	for (int i = 1; i < argc; ++i) {
-		auto arg = std::string(argv[i]);
+	int i = 0;
+	auto it = begin + 1;
+	for (; it < end; ++it) {
+		++i;
+		auto arg = std::string(*it);
 		if (arg == "--getsampleids") {
 			options.printIds = true;
 			continue;
@@ -553,18 +574,23 @@ Options getOptions(int argc, const char** argv)
 	}
 	if (ids.empty() || ids.size() % 2 != 0) {
 		options.valid = false;
+		options.error += "instrument ids empty or count is odd";
 	}
 	if (options.skeletonPath.empty()) {
 		options.valid = false;
+		options.error += "missing skeleton path";
 	}
 	if (!options.printIds && options.sampleFolder.empty()) {
 		options.valid = false;
+		options.error += "missing sample folder path";
 	}
 	if (!options.printIds && options.samplePathTemplate.empty()) {
 		options.valid = false;
+		options.error += "missing sample path template";
 	}
 	if (!options.printIds && options.outfile.empty()) {
 		options.valid = false;
+		options.error += "missing outfile";
 	}
 	if (!options.valid) {
 		return options;
