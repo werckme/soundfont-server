@@ -28,6 +28,7 @@ usage: sfcompose <pathToSkeleton> <pathToSmplFolder> <samplePathTemplate> <outfi
 #include <unordered_map>
 #include <fstream>
 #include <sstream>
+#include <cstdint>
 
 #ifdef WIN32
 #define PATH_SEP '\\'
@@ -82,9 +83,9 @@ struct SfDb {
 	filter::Filter filter;
 	std::unordered_map<dat::Id, SfTools::Preset*> presets;
 	std::unordered_map<dat::Id, SfTools::Instrument*> instruments;
-	std::unordered_map<dat::Id, size_t> instrumentIndices;
+	std::unordered_map<dat::Id, uint64_t> instrumentIndices;
 	std::unordered_map<dat::Id, SfTools::Sample*> samples;
-	std::unordered_map<dat::Id, size_t> sampleIndices;
+	std::unordered_map<dat::Id, uint64_t> sampleIndices;
 	std::unordered_map<dat::Id, SfTools::Zone*> zones;
 	std::unordered_map<SfTools::Sample*, const dat::SampleHeader*> sampleHeaders;
 };
@@ -172,15 +173,31 @@ const char * create_c_str(const std::string &input)
 
 
 #ifdef __EMSCRIPTEN__
-extern "C" const char * composejs(int argc, const char** argv)
+extern "C" const char * composejs(const char* _args)
 {
-	Options options = getOptions(argc, argv);
+	std::stringstream ss(_args);
+	std::vector<std::string> args = { "dummy" };
+	std::vector<const char*> cstringCopy = { args[0].c_str() };
+	while(!ss.eof()) {
+		std::string arg;
+		ss >> arg;
+		args.push_back(arg);
+		cstringCopy.push_back(args.back().c_str());
+	}
+
+	Options options = getOptions(args.size(), cstringCopy.data());
+
 	if (!options.valid) {
 		return create_c_str("{error: \"options invalid\"}");
 	}
-	process(options);
+	try {
+		process(options);
+	} catch(const std::exception &ex) {
+		return create_c_str(ex.what());
+	} catch(...) {
+		return create_c_str("unkown error");
+	}
 	return create_c_str(tty);
-
 }
 #endif
 
@@ -210,12 +227,12 @@ int main(int argc, const char** argv)
 template<typename T>
 void readContainer(dat::Container<T>& container, std::fstream& file)
 {
-	size_t byteSize = 0;
-	file.read(reinterpret_cast<char*>(&byteSize), sizeof(size_t));
+	uint64_t byteSize = 0;
+	file.read(reinterpret_cast<char*>(&byteSize), sizeof(uint64_t));
 	if (byteSize == 0) {
 		return;
 	}
-	auto size = byteSize / sizeof(T);
+	auto size = byteSize / 8;
 	container.resize(size);
 	file.read((char*)container.data(), byteSize);
 }

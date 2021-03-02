@@ -23,6 +23,7 @@ usage: sfsplit <pathToSoundfont>";
 #include <set>
 #include <map>
 #include <fstream>
+#include <cstdint>
 
 void getHeader(const SfTools::SoundFont* sf, dat::Skeleton& out);
 void getPresets(const SfTools::SoundFont* sf, dat::Skeleton& out);
@@ -197,8 +198,8 @@ void getZones(const QList<SfTools::Zone*> zones, dat::Skeleton& out, dat::For fo
 template<class TContainer>
 void writeContainer(const TContainer& container, std::fstream &file)
 {
-	size_t byteSize = sizeof(typename TContainer::value_type) * container.size();
-	file.write(reinterpret_cast<char*>(&byteSize), sizeof(size_t));
+	uint64_t byteSize = sizeof(typename TContainer::value_type) * container.size();
+	file.write(reinterpret_cast<char*>(&byteSize), sizeof(uint64_t));
 	if (byteSize == 0) {
 		return;
 	}
@@ -225,11 +226,11 @@ void writeSamples(const dat::Skeleton& skeleton, const SfTools::SoundFont* sf, c
 			throw std::runtime_error("invalid sample length");
 		}
 		auto path = basePath + "." + std::to_string(sampleHeader.id) + ".smpl";
-		size_t byteSize = sizeof(short) * (sampleHeader.end - sampleHeader.start);
+		uint64_t byteSize = sizeof(short) * (sampleHeader.end - sampleHeader.start);
 		std::vector<char> bff(byteSize);
 		std::fstream outfile(path.c_str(), std::ios_base::out | std::ios::binary);
 		std::fstream infile(sf->path.c_str(), std::ios_base::in | std::ios::binary);
-		infile.seekg(static_cast<size_t>(sf->samplePos) + (sampleHeader.start * sizeof(short)));
+		infile.seekg(static_cast<uint64_t>(sf->samplePos) + (sampleHeader.start * sizeof(short)));
 		infile.read(bff.data(), byteSize);
 		outfile.write(bff.data(), byteSize);
 	}
