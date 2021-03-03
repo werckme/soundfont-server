@@ -194,7 +194,7 @@ extern "C" const char * debug_args(const char* _args)
 
 extern "C" const char * composejs(const char* _args)
 {
-	tty = "";
+	tty = "{\"result\": \"ok\"}";
 	std::stringstream ss(_args);
 	std::vector<std::string> args = { "dummy" };
 	while(!ss.eof()) {
@@ -461,6 +461,10 @@ void readSample(SfTools::Sample* sample, const SfDb& db, short* outBff, int leng
 	auto fsize = file.tellg();
 	file.seekg(0, std::ios_base::end);
 	fsize = file.tellg() - fsize;
+	if (fsize == 0) {
+		// file not found, skip for now
+		return;
+	}
 	if (fsize != byteSize) {
 		throw std::runtime_error(samplePath + " file size mismatch expected " + std::to_string(byteSize) + " but was " + std::to_string(fsize));
 	}

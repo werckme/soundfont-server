@@ -1129,6 +1129,7 @@ int SoundFont::copySample(Sample* s)
 {
 	// Prepare input data
 	if (s->end <= s->start) {
+		return 0; // TODO: skip it for now
 		throw std::runtime_error("invalid sample start and end values");
 	}
 	int length = s->end - s->start;
