@@ -1,0 +1,6 @@
+{
+    "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/feature/splitandcompose/soundfonts/FluidR3_GM",
+    "skeleton": "FluidR3_GM.sf2.skeleton",
+    "sampleTemplate": "FluidR3_GM.sf2.$id.smpl",
+    "sfName": "FluidR3_GM"
+}
