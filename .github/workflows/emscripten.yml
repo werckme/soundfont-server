@@ -1,0 +1,49 @@
+name: Emscripten Build
+
+on:
+  push:
+    branches: 
+        - main
+        - feature/* 
+        - features/* 
+        - develop
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: update submodules
+      run: git submodule update --init --recursive --remote    
+    - name: install emscripten
+      run: git clone https://github.com/emscripten-core/emsdk.git && cd emsdk && ./emsdk install latest && ./emsdk activate latest
+    - name: create build folder
+      run: mkdir build
+      working-directory: sfcomposer      
+    - name: configure
+      run: source ../../emsdk/emsdk_env.sh && emcmake cmake -DEMSCRIPTEN=1 -DCMAKE_BUILD_TYPE=Release ..
+      env:
+        BUILD_NR: ${{ github.run_number }}
+      working-directory: sfcomposer/build
+    - name: sfcomposer/build
+      run: cmake --build .
+      working-directory: sfcomposer/build  
+    - name: pack
+      run: cpack -G ZIP
+      working-directory: sfcomposer/build
+    - uses: actions/upload-artifact@v2
+      with:
+        name: sfcomposer-linux-${{ github.sha }}
+        path: sfcomposer/build/sfcomposer-*-Emscripten.zip
+    - name: Publish
+      run: |
+          unzip sfcomposer-*-Emscripten.zip
+          cd sfcomposer-*-Emscripten
+          npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
+          npm publish --ignore-scripts --access=public
+      working-directory: sfcomposer/build
+      env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

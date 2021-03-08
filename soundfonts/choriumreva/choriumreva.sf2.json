@@ -1,0 +1,6 @@
+{
+    "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/feature/splitandcompose/soundfonts/choriumreva",
+    "skeleton": "choriumreva.sf2.skeleton",
+    "sampleTemplate": "choriumreva.sf2.$id.smpl",
+    "sfName": "choriumreva"
+}
