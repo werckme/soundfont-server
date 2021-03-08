@@ -250,7 +250,7 @@ void readContainer(dat::Container<T>& container, std::fstream& file)
 	if (byteSize == 0) {
 		return;
 	}
-	auto size = byteSize / sizeof(dat::Container<T>::value_type);
+	auto size = byteSize / sizeof(typename dat::Container<T>::value_type);
 	container.resize(size);
 	file.read((char*)container.data(), byteSize);
 }
