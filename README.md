@@ -27,9 +27,9 @@ this will create a `FluidR3_GM.sf2.skeleton` file and ~1400 sample files: `Fluid
     * `sfcompose out/FluidR3_GM.sf2.skeleton --getsampleids 0 16 1 5`
     * you get a list like this `0,1,2,4`
 ### use sfcompose to create the soundfont
-    *  `sfcompose $pathToSkeleton $pathToSamples $samplePathTemplate $outfile [banknr presetnr]`
-    * the `samplePathTemplate` means the part of any sample file before the number. So for samples like `FluidR3_GM.sf2.*.smpl` the `samplePathTemplate` is `FluidR3_GM.sf2.`
+   *  `sfcompose $pathToSkeleton $pathToSamples $samplePathTemplate $outfile [banknr presetnr]`
+   * the `samplePathTemplate` means the part of any sample file before the number. So for samples like `FluidR3_GM.sf2.*.smpl` the `samplePathTemplate` is `FluidR3_GM.sf2.`
     * for example `sfcompose out/FluidR3_GM.sf2.skeleton out FluidR3_GM.sf2. mySoundfont.sf2 0 0 0 16`
 # Sources
-[polyphone](https://www.polyphone-soundfonts.com/)
+[polyphone](https://www.polyphone-soundfonts.com/)<br>
 [MuseScore](https://musescore.org/)
