@@ -50,6 +50,22 @@ void getString(char* str, dat::StringType &dst) {
 	dst[dat::StringLength - 1] = 0;
 }
 
+void static _printInstument(SfTools::Instrument* i)
+{
+	std::cout << i->name << std::endl;
+	std::cout << i->zones.size() << std::endl;
+	for (auto z : i->zones) {
+		for (auto g : z->generators)
+		{
+			std::cout << g->gen << ":" << g->amount.uword << std::endl;
+		}
+		for (auto g : z->modulators)
+		{
+			std::cout << g->dst << ":" << g->amount << std::endl;
+		}
+	}
+}
+
 void process(const std::string& sfPath)
 {
 	auto sf = load(sfPath);
@@ -190,6 +206,7 @@ void getZones(const QList<SfTools::Zone*> zones, dat::Skeleton& out, dat::For fo
 			outModulator.for_ = for_;
 			outModulator.amount = modulator->amount;
 			outModulator.dst = modulator->dst;
+			outModulator.zone = zoneIdCounter;
 			out.modulators.push_back(outModulator);
 		}
 	}

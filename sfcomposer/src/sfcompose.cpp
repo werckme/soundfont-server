@@ -130,6 +130,23 @@ void saveAs(SfTools::SoundFont* sf, const std::string& newPath)
 	sf->file = nullptr;
 }
 
+void static _printInstument(SfTools::Instrument* i)
+{
+	std::cout << i->name << std::endl;
+	std::cout << i->zones.size() << std::endl;
+	for (auto z : i->zones) {
+		for (auto g : z->generators)
+		{
+			std::cout << g->gen << ":" << g->amount.uword << std::endl;
+		}
+		for (auto g : z->modulators)
+		{
+			std::cout << g->dst << ":" << g->amount << std::endl;
+		}
+	}
+}
+
+
 void process(const Options &options)
 {
 	dat::Skeleton skeleton;
@@ -148,6 +165,7 @@ void process(const Options &options)
 	}
 	using namespace std::placeholders;
 	SfTools::SoundFont sf;
+	
 	sf.readSampleFunction = std::bind(&readSample, _1, std::ref(db), _2, _3);
 	writeHeader(skeleton, &sf);
 	writePresets(skeleton, &sf, db);
