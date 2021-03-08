@@ -1,5 +1,6 @@
 sfcomposer/build/*
-
+.vscode
+gcc
 
 # Created by https://www.toptal.com/developers/gitignore/api/c++,node,cmake,visualstudio,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,node,cmake,visualstudio,visualstudiocode
