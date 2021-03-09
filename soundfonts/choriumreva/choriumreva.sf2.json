@@ -1,5 +1,5 @@
 {
-    "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/v1.0/soundfonts/choriumreva",
+    "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/v1.1/soundfonts/choriumreva",
     "skeleton": "choriumreva.sf2.skeleton",
     "sampleTemplate": "choriumreva.sf2.$id.smpl",
     "sfName": "choriumreva"

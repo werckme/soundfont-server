@@ -1,5 +1,5 @@
 {
-    "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/v1.0/soundfonts/FluidR3_GM",
+    "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/v1.1/soundfonts/FluidR3_GM",
     "skeleton": "FluidR3_GM.sf2.skeleton",
     "sampleTemplate": "FluidR3_GM.sf2.$id.smpl",
     "sfName": "FluidR3_GM"
