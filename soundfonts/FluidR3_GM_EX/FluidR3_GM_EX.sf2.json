@@ -1,0 +1,6 @@
+{
+    "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/v1.2/soundfonts/FluidR3_GM_EX",
+    "skeleton": "FluidR3_GM_EX.sf2.skeleton",
+    "sampleTemplate": "FluidR3_GM_EX.sf2.$id.smpl",
+    "sfName": "FluidR3_GM"
+}
