@@ -2,6 +2,6 @@
     "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/main/soundfonts/Live_HQ_Natural_SoundFont_GM",
     "skeleton": "Live_HQ_Natural_SoundFont_GM.sf2.skeleton",
     "sampleTemplate": "Live_HQ_Natural_SoundFont_GM.sf2.$id.smpl",
-    "sfName": "Live HQ Natural SoundFont GM",
+    "sfName": "Live_HQ_Natural_SoundFont_GM",
     "licence": "<a href='https://creativecommons.org/licenses/by/4.0/deed.en'>CC 4.0</a> by <a href='https://musical-artifacts.com/artifacts/1176'>UnderxPipe1985</a>"
 }
