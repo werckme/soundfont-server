@@ -1,5 +1,5 @@
 {
-    "baseUrl": "https://github.com/werckme/soundfont-server/blob/main/soundfonts/Live_HQ_Natural_SoundFont_GM",
+    "baseUrl": "https://raw.githubusercontent.com/werckme/soundfont-server/main/soundfonts/Live_HQ_Natural_SoundFont_GM",
     "skeleton": "Live_HQ_Natural_SoundFont_GM.sf2.skeleton",
     "sampleTemplate": "Live_HQ_Natural_SoundFont_GM.sf2.$id.smpl",
     "sfName": "Live HQ Natural SoundFont GM",
